@@ -1,0 +1,15 @@
+---
+# tasks file for dkron-cluster
+
+- name: map nodes in dkron group to ordered list
+  set_fact:
+    dkron_hosts: "{{ groups['dkron']|sort }}"
+    
+- name: create dkron config file for clustering
+  copy:
+    content: |
+      server: true
+      bootstrap-expect: {{ dkron_hosts|length }}
+      join: 
+        {{ dkron_hosts | difference([inventory_hostname]) | to_nice_yaml | trim | indent(2) }}
+    dest: /etc/dkron/dkron.yml

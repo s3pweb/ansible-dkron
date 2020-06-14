@@ -1,0 +1,13 @@
+---
+# tasks file for dkron-cluster
+
+- name: start dkron service
+  service:
+    name: dkron
+    state: started
+  when: not dockerized
+
+- name: start dkron service
+  command:
+    cmd: /usr/bin/dkron agent
+  when: dockerized
