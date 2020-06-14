@@ -1,0 +1,3 @@
+---
+# defaults file for dkron-cluster
+autoupgrade: true

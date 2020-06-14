@@ -1,0 +1,9 @@
+---
+# tasks file for dkron-cluster
+- name: configure dkron yum repository
+  yum_repository:
+    name: dkron
+    description: Dkron Pro Private Repo
+    baseurl: https://repo.distrib.works/yum/
+    gpgcheck: no
+    state: present

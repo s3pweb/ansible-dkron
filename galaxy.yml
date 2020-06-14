@@ -1,0 +1,16 @@
+namespace: knightsg
+name: dkron
+version: 1.0.0
+readme: README.md
+authors:
+  - Guy Knights <contact@guyknights.com>
+description: Installation, configuration and management of a Dkron cluster
+license:
+  - GPL-2.0-or-later
+tags:
+  - dkron
+dependencies: {}
+repository: https://github.com/knightsg/dkron
+documentation: ''
+homepage: ''
+issues: ''

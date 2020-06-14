@@ -1,0 +1,9 @@
+---
+# tasks file for dkron-cluster
+
+- name: configure dkron apt repository
+  apt_repository:
+    repo: deb [trusted=yes] https://repo.distrib.works/apt/ /
+    filename: dkron
+    update_cache: yes
+    state: present

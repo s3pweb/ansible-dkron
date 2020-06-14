@@ -1,0 +1,12 @@
+---
+# tasks file for dkron-cluster
+
+- include_tasks: apt.yml
+  when: ansible_distribution in ['Debian', 'Ubuntu']
+
+- include_tasks: yum.yml
+  when: ansible_distribution in ['CentOS', 'RedHat']
+
+- debug:
+    msg: "Setup tasks not available for distribution {{ ansible_distribution }}..."
+  when: ansible_distribution not in ['Debian', 'Ubuntu', 'CentOS', 'RedHat']

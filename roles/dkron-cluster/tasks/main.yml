@@ -1,0 +1,5 @@
+---
+# tasks file for dkron-cluster
+
+- import_tasks: repo.yml
+- import_tasks: install.yml

@@ -1,0 +1,7 @@
+---
+# test playbook for dkron collection
+
+- hosts: all
+  
+  roles:
+    - dkron-cluster
