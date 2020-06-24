@@ -2,6 +2,8 @@
 # test playbook for dkron collection
 
 - hosts: all
+  collections:
+    - knightsg.dkron
   
   roles:
     - dkron-cluster
