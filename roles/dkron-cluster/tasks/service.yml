@@ -29,5 +29,6 @@
       command:
         cmd: /usr/bin/dkron agent
       when: 
-        - containerized
         - pid_list.pids|length < 1
+
+  when: containerized
