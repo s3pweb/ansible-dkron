@@ -6,4 +6,17 @@
     - knightsg.dkron
   
   roles:
-    - dkron-cluster
+    - role: dkron-cluster
+      vars:
+        autoupgrade: True
+
+  tasks:
+
+    - name: test dkron_cluster_info module
+      dkron_cluster_info:
+        endpoint: 192.168.20.11
+        type: boobs
+      register: cluster_info
+
+    - debug:
+        var: cluster_info

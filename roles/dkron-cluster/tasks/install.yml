@@ -6,6 +6,8 @@
     name: dkron
     state: latest
   when: autoupgrade
+  notify:
+    - restart dkron
 
 - name: install dkron
   package:

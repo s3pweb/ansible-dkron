@@ -13,12 +13,12 @@ ANSIBLE_METADATA = {
 }
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.dkron import Dkron
+from ansible_collections.knightsg.dkron.plugins.module_utils.dkron import DkronAPI
 
 def run_module():
     module_args = dict(
         endpoint=dict(type='str', required=True),
-        port=dict(type='str', required=False, default='8080'),
+        port=dict(type='int', required=False, default=8080),
         username=dict(type='str', required=False),
         password=dict(type='str', required=False, no_log=True),
         use_ssl=dict(type='bool', required=False, default=False),
@@ -28,7 +28,7 @@ def run_module():
     result = dict(
         changed=False,
         failed=False,
-        results={}
+        ansible_module_results={}
     )
 
     module = AnsibleModule(
@@ -36,11 +36,18 @@ def run_module():
         supports_check_mode=True
     )
 
-    dkron = Dkron(module)
+    api = DkronAPI(module)
 
-    rc, data, changed = dkron.cluster_info()
+    data, changed = api.cluster_info()
 
-    module.exit_json(msg="success", result=data, changed=changed)
+    if data:
+        result['data'] = data
+    else:
+        result['failed'] = True
+
+    result['changed'] = changed
+    
+    module.exit_json(**result)
 
 def main():
     run_module()

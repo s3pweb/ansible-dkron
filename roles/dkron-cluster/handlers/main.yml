@@ -1,2 +1,6 @@
 ---
 # handlers file for dkron-cluster
+- name: restart dkron
+  service:
+    name: dkron
+    state: restarted

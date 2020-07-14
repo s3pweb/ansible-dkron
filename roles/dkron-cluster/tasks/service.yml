@@ -5,6 +5,7 @@
   service:
     name: dkron
     state: started
+    enabled: yes
   when: not containerized
 
 - name: tasks if the dkron cluster is containerized

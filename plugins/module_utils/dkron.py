@@ -3,7 +3,7 @@
 from ansible.module_utils.urls import fetch_url
 import json
 
-class Dkron(object):
+class DkronAPI(object):
 
 	def __init__(self, module):
 		if 'username' in module.params and module.params['username'] != '':
@@ -18,11 +18,12 @@ class Dkron(object):
 			self.module.fail_json(msg="username is blank")
 
 		self.module = module
-		self.root_url = "{0}://{1}{2}/v1".format(
-			('https' if self.module.params['use_ssl'] else 'http'), 
-			self.module.params['endpoint'],
-			(':' + self.module.params['port'] if 'port' in self.module.params else '')
+		self.root_url = "{proto}://{endpoint}:{port}/v1".format(
+			proto=('https' if self.module.params['use_ssl'] else 'http'), 
+			endpoint=self.module.params['endpoint'],
+			port=self.module.params['port']
 		)
+
 		self.headers = {
 			"Content-Type": "application/json"
 		}
@@ -34,24 +35,41 @@ class Dkron(object):
 	#	* list of jobs
 	def cluster_info(self):
 		data = {}
+		changed = False
 
 		if self.module.params['type'] in ['all', 'status']:
-			data['status'] = self.cluster_status()
+			status = self.get_cluster_status()
+
+			if status is not None:
+				data['status'] = status
+				changed = True
 
 		if self.module.params['type'] in ['all', 'leader']:
-			data['leader'] = self.leader_node()
+			leader = self.get_leader_node()
 
-		if self.module.params['type'] in ['all', 'members']:
-			data['members'] = self.member_nodes()
+			if leader is not None:
+				data['leader'] = leader
+				changed = True
+
+		if self.module.params['type'] in ['all', 'members', 'nodes']:
+			members = self.get_member_nodes()
+
+			if members is not None:
+				data['members'] = members
+				changed = True
 
 		if self.module.params['type'] in ['all', 'jobs']:
-			data['jobs'] = self.job_list()
+			jobs = self.get_job_list()
+			
+			if jobs is not None:
+				data['jobs'] = jobs
+				changed = True
 
-		return False, data, False
+		return data, changed
 
 	# Return:
 	#	* cluster status
-	def cluster_status(self, http_call=fetch_url):
+	def get_cluster_status(self, http_call=fetch_url):
 		api_url = api_url = "{0}/".format(self.root_url)
 		headers = dict(self.headers)
 
@@ -62,11 +80,14 @@ class Dkron(object):
 
 		json_out = self._read_response(response)
 
+		if json_out == "":
+			return None
+
 		return json_out
 
 	# Return:
 	#	* leader node
-	def leader_node(self, http_call=fetch_url):
+	def get_leader_node(self, http_call=fetch_url):
 		api_url = api_url = "{0}/leader".format(self.root_url)
 		headers = dict(self.headers)
 
@@ -83,7 +104,7 @@ class Dkron(object):
 
 	# Return:
 	#	* cluster members
-	def member_nodes(self, http_call=fetch_url):
+	def get_member_nodes(self, http_call=fetch_url):
 		api_url = "{0}/members".format(self.root_url)
 		headers = dict(self.headers)
 
@@ -93,11 +114,14 @@ class Dkron(object):
 
 		json_out = self._read_response(response)
 
+		if json_out == "":
+			return None
+
 		return [member['Addr'] for member in json_out]
 
 	# Return:
 	#	* list of jobs
-	def job_list(self, http_call=fetch_url):
+	def get_job_list(self, http_call=fetch_url):
 		api_url = api_url = "{0}/jobs".format(self.root_url)
 		headers = dict(self.headers)
 
@@ -106,6 +130,9 @@ class Dkron(object):
 			self.module.fail_json(msg="failed to obtain list of jobs: {0}".format(info['msg']))
 
 		json_out = self._read_response(response)
+
+		if json_out == "":
+			return None
 
 		return [job['name'] for job in json_out]
 
@@ -121,7 +148,7 @@ class Dkron(object):
 		data['config'] = self.job_config
 		data['history'] = self.job_history
 
-		return False, data, False
+		return data, False
 
 	# Return:
 	#	* job configuration
@@ -131,7 +158,7 @@ class Dkron(object):
 
 		response, info = http_call(self.module, api_url, headers=headers)
 		if info['status'] != 200:
-			self.module.fail_json(msg="failed to obtain jbo configuration: {0}".format(info['msg']))
+			self.module.fail_json(msg="failed to obtain job configuration: {0}".format(info['msg']))
 
 		json_out = self._read_response(response)
 
@@ -168,7 +195,7 @@ class Dkron(object):
 
 		json_out = self._read_response(response)
 
-		return False, json_out, True
+		return json_out, True
 
 	# Return:
 	#	* job execution successful
@@ -182,7 +209,7 @@ class Dkron(object):
 
 		json_out = self._read_response(response)
 
-		return False, json_out, True
+		return json_out, True
 
 	# Return:
 	#	* job enable/disable status
@@ -196,7 +223,7 @@ class Dkron(object):
 
 		json_out = self._read_response(response)
 
-		return False, json_out, True
+		return json_out, True
 
 	def _read_response(self, response):
 		try:
