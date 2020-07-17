@@ -13,10 +13,10 @@
   tasks:
 
     - name: test dkron_cluster_info module
-      dkron_cluster_info:
+      dkron_job_info:
         endpoint: 192.168.20.11
-        type: boobs
-      register: cluster_info
+        job_name: testjob
+      register: data
 
     - debug:
-        var: cluster_info
+        var: data

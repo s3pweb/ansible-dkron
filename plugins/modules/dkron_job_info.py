@@ -22,7 +22,7 @@ def run_module():
         username=dict(type='str', required=False),
         password=dict(type='str', required=False, no_log=True),
         use_ssl=dict(type='bool', required=False, default=False),
-        type=dict(type='str', required=False, default='all')
+        job_name=dict(type='str', required=True)
     )
 
     result = dict(
@@ -38,7 +38,7 @@ def run_module():
 
     api = DkronAPI(module)
 
-    data, changed = api.get_cluster_info()
+    data, changed = api.get_job_info()
 
     if data:
         result['results'] = data
