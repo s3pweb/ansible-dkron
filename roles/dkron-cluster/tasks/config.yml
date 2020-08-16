@@ -1,11 +1,10 @@
 ---
 # tasks file for dkron-cluster
-
 - name: map nodes in dkron group to ordered list
   set_fact:
     dkron_hosts: "{{ dkron_hosts|default([]) + [hostvars[item]['ansible_default_ipv4']['address']] }}"
   loop: "{{ groups['dkron'] }}"
-    
+
 - name: create dkron config file for clustering
   copy:
     content: |
