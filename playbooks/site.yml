@@ -2,13 +2,16 @@
 # test playbook for dkron collection
 
 - hosts: all
-  collections:
-    - knightsg.dkron
   
   roles:
     - role: dkron-cluster
       vars:
         autoupgrade: True
+
+- hosts: localhost
+  gather_facts: False
+  collections:
+    - knightsg.dkron
 
   tasks:
 

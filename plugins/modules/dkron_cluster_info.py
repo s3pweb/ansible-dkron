@@ -28,7 +28,7 @@ def run_module():
     result = dict(
         changed=False,
         failed=False,
-        results={}
+        ansible_module_results={}
     )
 
     module = AnsibleModule(
@@ -41,7 +41,7 @@ def run_module():
     data, changed = api.get_cluster_info()
 
     if data:
-        result['results'] = data
+        result['ansible_module_results'] = data
     else:
         result['failed'] = True
 

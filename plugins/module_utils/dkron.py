@@ -73,12 +73,12 @@ class DkronAPI(object):
 	def get_cluster_status(self):
 		api_url = api_url = "{0}/".format(self.root_url)
 
-		response, info = fetch_url(self.module, api_url, headers=dict(self.headers))
+		response, info = fetch_url(self.module, api_url, headers=json.loads(self.headers))
 
 		if info['status'] != 200:
 			self.module.fail_json(msg="failed to obtain cluster status: {0}".format(info['msg']))
 
-		json_out = self._read_response(response)
+		json_out = json.loads(response.read().decode('utf8'))
 
 		if json_out == "":
 			return None
@@ -90,11 +90,12 @@ class DkronAPI(object):
 	def get_leader_node(self):
 		api_url = api_url = "{0}/leader".format(self.root_url)
 
-		response, info = fetch_url(self.module, api_url, headers=dict(self.headers))
+		response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='GET')
+
 		if info['status'] != 200:
 			self.module.fail_json(msg="failed to obtain leader info: {0}".format(info['msg']))
 
-		json_out = self._read_response(response)
+		json_out = json.loads(response.read().decode('utf8'))
 
 		if json_out == "":
 			return None
@@ -110,7 +111,7 @@ class DkronAPI(object):
 		if info['status'] != 200:
 			self.module.fail_json(msg="failed to obtain list of cluster member nodes: {0}".format(info['msg']))
 
-		json_out = self._read_response(response)
+		json_out = json.loads(response.read().decode('utf8'))
 
 		if json_out == "":
 			return None
@@ -126,7 +127,7 @@ class DkronAPI(object):
 		if info['status'] != 200:
 			self.module.fail_json(msg="failed to obtain list of jobs: {0}".format(info['msg']))
 
-		json_out = self._read_response(response)
+		json_out = json.loads(response.read().decode('utf8'))
 
 		if json_out == "":
 			return None
@@ -155,10 +156,11 @@ class DkronAPI(object):
 		api_url = "{root_url}/jobs/{job_name}".format(root_url=self.root_url, job_name=self.module.params['job_name'])
 
 		response, info = fetch_url(self.module, api_url, headers=dict(self.headers))
+
 		if info['status'] != 200:
 			self.module.fail_json(msg="failed to obtain job configuration: {0}".format(info['msg']))
 
-		json_out = self._read_response(response)
+		json_out = json.loads(response.read().decode('utf8'))
 
 		return json_out
 
@@ -171,7 +173,7 @@ class DkronAPI(object):
 		if info['status'] != 200:
 			self.module.fail_json(msg="failed to obtain job execution history: {0}".format(info['msg']))
 
-		json_out = self._read_response(response)
+		json_out = json.loads(response.read().decode('utf8'))
 
 		return json_out
 
@@ -189,7 +191,7 @@ class DkronAPI(object):
 		if info['status'] != 200:
 			self.module.fail_json(msg="failed to delete job: {0}".format(info['msg']))
 
-		json_out = self._read_response(response)
+		json_out = json.loads(response.read().decode('utf8'))
 
 		return json_out, True
 
@@ -202,7 +204,7 @@ class DkronAPI(object):
 		if info['status'] != 200:
 			self.module.fail_json(msg="failed to trigger job: {0}".format(info['msg']))
 
-		json_out = self._read_response(response)
+		json_out = json.loads(response.read().decode('utf8'))
 
 		return json_out, True
 
@@ -215,7 +217,7 @@ class DkronAPI(object):
 		if info['status'] != 200:
 			self.module.fail_json(msg="failed to trigger: {0}".format(info['msg']))
 
-		json_out = self._read_response(response)
+		json_out = json.loads(response.read().decode('utf8'))
 
 		return json_out, True
 
