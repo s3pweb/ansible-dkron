@@ -73,7 +73,7 @@ class DkronAPI(object):
 	def get_cluster_status(self):
 		api_url = api_url = "{0}/".format(self.root_url)
 
-		response, info = fetch_url(self.module, api_url, headers=json.loads(self.headers))
+		response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='GET')
 
 		if info['status'] != 200:
 			self.module.fail_json(msg="failed to obtain cluster status: {0}".format(info['msg']))
@@ -141,10 +141,13 @@ class DkronAPI(object):
 		data = {}
 		changed = False
 
-		job_info = {
-			'configuration': self.get_job_config(),
-			'history': self.get_job_history()
-		}
+		job_info = []
+
+		for job_name in self.module.params['names']:
+			job_info.append({
+				'configuration': self.get_job_config(job_name),
+				'history': self.get_job_history(job_name)
+			})
 
 		changed = True
 
@@ -152,8 +155,8 @@ class DkronAPI(object):
 
 	# Return:
 	#	* job configuration
-	def get_job_config(self):
-		api_url = "{root_url}/jobs/{job_name}".format(root_url=self.root_url, job_name=self.module.params['job_name'])
+	def get_job_config(self, job_name):
+		api_url = "{root_url}/jobs/{job_name}".format(root_url=self.root_url, job_name=job_name)
 
 		response, info = fetch_url(self.module, api_url, headers=dict(self.headers))
 
@@ -166,8 +169,8 @@ class DkronAPI(object):
 
 	# Return:
 	#	* job execution history
-	def get_job_history(self):
-		api_url = "{root_url}/jobs/{job_name}/executions".format(root_url=self.root_url, job_name=self.module.params['job_name'])
+	def get_job_history(self, job_name):
+		api_url = "{root_url}/jobs/{job_name}/executions".format(root_url=self.root_url, job_name=job_name)
 
 		response, info = fetch_url(self.module, api_url, headers=dict(self.headers))
 		if info['status'] != 200:
@@ -197,8 +200,8 @@ class DkronAPI(object):
 
 	# Return:
 	#	* job execution successful
-	def trigger_job(self):
-		api_url = "{0}/jobs/{1}".format(self.root_url, self.module.params.name)
+	def trigger_job(self, job_name):
+		api_url = "{0}/jobs/{1}".format(self.root_url, job_name)
 
 		response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='POST')
 		if info['status'] != 200:
@@ -211,7 +214,7 @@ class DkronAPI(object):
 	# Return:
 	#	* job enable/disable status
 	def toggle_job(self):
-		api_url = "{0}/jobs/{1}/toggle".format(self.root_url, self.module.params.name)
+		api_url = "{0}/jobs/{1}/toggle".format(self.root_url, job_name)
 
 		response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='POST')
 		if info['status'] != 200:

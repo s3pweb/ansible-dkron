@@ -22,7 +22,7 @@ def run_module():
         username=dict(type='str', required=False),
         password=dict(type='str', required=False, no_log=True),
         use_ssl=dict(type='bool', required=False, default=False),
-        type=dict(type='str', required=False, default='all')
+        type=dict(type='str', choices=['all','status','leader','members','nodes','jobs'],default='all')
     )
 
     result = dict(

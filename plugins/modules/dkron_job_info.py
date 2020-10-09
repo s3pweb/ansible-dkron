@@ -22,13 +22,12 @@ def run_module():
         username=dict(type='str', required=False),
         password=dict(type='str', required=False, no_log=True),
         use_ssl=dict(type='bool', required=False, default=False),
-        job_name=dict(type='str', required=True)
+        names=dict(type='list', required=True, aliases=['name'])
     )
 
     result = dict(
         changed=False,
-        failed=False,
-        results={}
+        failed=False
     )
 
     module = AnsibleModule(
@@ -41,7 +40,7 @@ def run_module():
     data, changed = api.get_job_info()
 
     if data:
-        result['results'] = data
+        result['data'] = data
     else:
         result['failed'] = True
 
