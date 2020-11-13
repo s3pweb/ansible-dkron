@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from ansible.module_utils.urls import fetch_url
+from operator import itemgetter
 import json
 
 class DkronAPI(object):
@@ -143,11 +144,22 @@ class DkronAPI(object):
 
 		job_info = []
 
-		for job_name in self.module.params['names']:
-			job_info.append({
-				'configuration': self.get_job_config(job_name),
-				'history': self.get_job_history(job_name)
-			})
+		if not self.module.params['job_names']:
+			jobs = self.get_job_list()
+		else:
+			jobs = self.module.params['job_names']
+
+		for job_name in jobs:
+			if self.module.params['limit_history'] != 0:
+				job_info.append({
+					'configuration': self.get_job_config(job_name),
+					'history': sorted(self.get_job_history(job_name), key=itemgetter('started_at'), reverse=True)[:self.module.params['limit_history']]
+				})
+			else:
+				job_info.append({
+					'configuration': self.get_job_config(job_name),
+					'history': sorted(self.get_job_history(job_name), key=itemgetter('started_at'), reverse=True)
+				})				
 
 		changed = True
 

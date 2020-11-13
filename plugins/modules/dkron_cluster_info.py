@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-# Copyright: (c) 2920, Guy Knights <contact@guyknights.com>
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
+
+# Copyright: (c) 2920, Guy Knights <contact@guyknights.com>
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
