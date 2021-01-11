@@ -46,9 +46,48 @@ options:
       - Limit the history returned for each job to the amount specified by this parameter (eg. 5)
       - Will return full history for each job if omitted.
     type: int
+    
 author:
 - Guy Knights (contact@guyknights.com)
 
+'''
+
+EXAMPLES = r'''
+- name: Get config and full history for all defined jobs
+  knightsg.dkron.dkron_job_info:
+    endpoint: 192.168.1.1
+
+- name: Get config and full history for a list of jobs from secured cluster
+  knightsg.dkron.dkron_job_info:
+    endpoint: myclusterendpoint.com
+    use_ssl: true
+    username: myusername
+    password: mypassword
+    job_names:
+      - my_job_1
+      - my_job_2
+      - my_job_3
+
+- name: Get config for all defined jobs but limit history to last execution only
+  knightsg.dkron.dkron_job_info:
+    endpoint: 192.168.1.1
+    limit_history: 1
+
+'''
+
+RETURN = r'''
+configuration:
+  description: Job configuration as returned by the Dkron cluster API (https://dkron.io/api/).
+  returned: always
+  type: dict
+  sample: { "concurrency": "allow", "dependent_jobs": null, "disabled": false, "displayname": "", "error_count": 0, "executor": "shell", "executor_config": { "command": "/bin/true" }, "last_error": null, "last_success": "2020-11-14T17:32:15.010781048Z", "metadata": null, "name": "job", "next": "2020-11-14T17:33:15Z", "owner": "guy", "owner_email": "someone@example.com", "parent_job": "", "processors": {}, "retries": 0, "schedule": "@every 1m", "status": "success", "success_count": 185, "tags": { "server": "true:1" }, "timezone": ""}
+  contains: see Dkron usage documentation for complete breakdown of returned values (https://dkron.io/usage/)
+history:
+  description: List of job executions with result status.
+  returned: always
+  type: dict
+  sample: { "attempt": 1, "finished_at": "2020-11-14T17:32:15.010781048Z", "group": 1605375135000263778, "job_name": "job", "node_name": "myhostname", "started_at": "2020-11-14T17:32:15.007570195Z", "success": true }
+  
 '''
 
 ANSIBLE_METADATA = {

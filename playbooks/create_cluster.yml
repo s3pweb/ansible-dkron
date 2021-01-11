@@ -1,0 +1,26 @@
+---
+# Set up dkron cluster and return cluster information
+
+- hosts: all
+  
+  roles:
+    - role: dkron-cluster
+      vars:
+        autoupgrade: True
+
+- hosts: localhost
+  gather_facts: False
+  collections:
+    - knightsg.dkron
+
+  tasks:
+
+    - name: gather cluster information
+      dkron_cluster_info:
+        endpoint: "{{ groups['dkron']|map('extract', hostvars, ['ansible_host'])|first }}"
+        type: jobs
+      register: cluster_data
+
+    - name: display cluster information
+      debug:
+        var: cluster_data.ansible_module_results
