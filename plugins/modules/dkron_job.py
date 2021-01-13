@@ -9,9 +9,9 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: dkron_job
-short_description: Gathers information about jobs in a Dkron cluster
+short_description: Create a Dkron job
 description:
-- Gathers information about jobs in a Dkron cluster.
+- Create a Dkron job.
 options:
   endpoint:
     description:
