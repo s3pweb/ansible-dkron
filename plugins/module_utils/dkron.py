@@ -77,7 +77,7 @@ class DkronAPI(object):
 		response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='GET')
 
 		if info['status'] != 200:
-			self.module.fail_json(msg="failed to obtain cluster status: {0}".format(info['msg']))
+			self.module.fail_json(msg="failed to obtain cluster status: {msg}".format(msg=info['msg']))
 
 		json_out = json.loads(response.read().decode('utf8'))
 
@@ -94,7 +94,7 @@ class DkronAPI(object):
 		response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='GET')
 
 		if info['status'] != 200:
-			self.module.fail_json(msg="failed to obtain leader info: {0}".format(info['msg']))
+			self.module.fail_json(msg="failed to obtain leader info: {msg}".format(msg=info['msg']))
 
 		json_out = json.loads(response.read().decode('utf8'))
 
@@ -110,7 +110,7 @@ class DkronAPI(object):
 
 		response, info = fetch_url(self.module, api_url, headers=dict(self.headers))
 		if info['status'] != 200:
-			self.module.fail_json(msg="failed to obtain list of cluster member nodes: {0}".format(info['msg']))
+			self.module.fail_json(msg="failed to obtain list of cluster member nodes: {msg}".format(msg=info['msg']))
 
 		json_out = json.loads(response.read().decode('utf8'))
 
@@ -126,7 +126,7 @@ class DkronAPI(object):
 
 		response, info = fetch_url(self.module, api_url, headers=dict(self.headers))
 		if info['status'] != 200:
-			self.module.fail_json(msg="failed to obtain list of jobs: {0}".format(info['msg']))
+			self.module.fail_json(msg="failed to obtain list of jobs: {msg}".format(msg=info['msg']))
 
 		json_out = json.loads(response.read().decode('utf8'))
 
@@ -173,7 +173,7 @@ class DkronAPI(object):
 		response, info = fetch_url(self.module, api_url, headers=dict(self.headers))
 
 		if info['status'] != 200:
-			self.module.fail_json(msg="failed to obtain job configuration: {0}".format(info['msg']))
+			self.module.fail_json(msg="failed to obtain job configuration: {msg}".format(msg=info['msg']))
 
 		json_out = json.loads(response.read().decode('utf8'))
 
@@ -186,7 +186,7 @@ class DkronAPI(object):
 
 		response, info = fetch_url(self.module, api_url, headers=dict(self.headers))
 		if info['status'] != 200:
-			self.module.fail_json(msg="failed to obtain job execution history: {0}".format(info['msg']))
+			self.module.fail_json(msg="failed to obtain job execution history: {msg}".format(msg=info['msg']))
 
 		json_out = json.loads(response.read().decode('utf8'))
 
@@ -195,7 +195,22 @@ class DkronAPI(object):
 	# Return:
 	#	* job create/update status
 	def upsert_job(self):
-		pass
+		job_list = self.get_job_list()
+
+		if self.module.params.name not in job_list:
+			action = 'create'
+		else:
+			action = 'update'
+
+		api_url = "{0}/jobs".format(self.root_url)
+
+		response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='POST')
+		if info['status'] != 200:
+			self.module.fail_json(msg="failed to {action} job: {msg}".format(action=action, msg=info['msg']))
+
+		json_out = json.loads(response.read().decode('utf8'))
+
+		return json_out, True
 
 	# Return:
 	#	* job delete result
@@ -204,7 +219,7 @@ class DkronAPI(object):
 
 		response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='DELETE')
 		if info['status'] != 200:
-			self.module.fail_json(msg="failed to delete job: {0}".format(info['msg']))
+			self.module.fail_json(msg="failed to delete job: {msg}".format(msg=info['msg']))
 
 		json_out = json.loads(response.read().decode('utf8'))
 
@@ -217,7 +232,7 @@ class DkronAPI(object):
 
 		response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='POST')
 		if info['status'] != 200:
-			self.module.fail_json(msg="failed to trigger job: {0}".format(info['msg']))
+			self.module.fail_json(msg="failed to trigger job: {msg}".format(msg=info['msg']))
 
 		json_out = json.loads(response.read().decode('utf8'))
 
@@ -230,7 +245,7 @@ class DkronAPI(object):
 
 		response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='POST')
 		if info['status'] != 200:
-			self.module.fail_json(msg="failed to trigger: {0}".format(info['msg']))
+			self.module.fail_json(msg="failed to trigger: {msg}".format(msg=info['msg']))
 
 		json_out = json.loads(response.read().decode('utf8'))
 

@@ -53,7 +53,7 @@ options:
     description:
       - Timezone for job execution
     type: string
-    require: true
+    default: UTC
   owner:
     description:
       - Name of job owner
@@ -233,9 +233,14 @@ configuration:
   description: Copy of job configuration (for reference).
   returned: always
   type: complex
-  sample:
-    { "name": "mytestjob1", "displayname": "my_alt_job_name_1", "schedule": "0 */10 * * * *", "timezone"": "UTC", "owner": "John Smith" }
   contains: see Dkron usage documentation for complete breakdown of returned values (https://dkron.io/usage/)
+  sample: { 
+    "name": "mytestjob1",
+    "displayname": "my_alt_job_name_1",
+    "schedule": "0 */10 * * * *",
+    "timezone"": "UTC",
+    "owner": "John Smith"
+  }
 '''
 
 ANSIBLE_METADATA = {
@@ -254,7 +259,7 @@ def run_module():
         username=dict(type='str', required=False),
         password=dict(type='str', required=False, no_log=True),
         use_ssl=dict(type='bool', required=False, default=False),
-        job_name=dict(type='str', required=False),
+        job_name=dict(type='str', required=True),
         display_name=dict(type='str', required=False),
         schedule=dict(type='str', required=True),
         timezone=dict(type='str', required=False, default='UTC'),
@@ -283,6 +288,9 @@ def run_module():
         argument_spec=module_args,
         supports_check_mode=True
     )
+
+    if module_args.params.shell_executor == None and module_args.params.http_executor == None:
+        module.fail_json(msg="Module requires shell_executor or http_executor parameter specified.")
 
     api = DkronAPI(module)
 

@@ -1,0 +1,22 @@
+---
+# Create some jobs and then return a list of jobs in the cluster
+
+- hosts: localhost
+  gather_facts: False
+  collections:
+    - knightsg.dkron
+  vars:
+    query_host: "{{ groups['dkron']|map('extract', hostvars, ['ansible_host'])|first }}"
+    
+  tasks:
+
+    - name: test dkron_job module by creating a job
+      dkron_job:
+        endpoint: "{{ query_host }}"
+        job_name: job1
+        
+      register: data
+
+    - name: display cluster job info
+      debug:
+        var: data
