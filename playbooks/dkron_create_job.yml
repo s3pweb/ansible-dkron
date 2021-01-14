@@ -13,8 +13,11 @@
     - name: test dkron_job module by creating a job
       dkron_job:
         endpoint: "{{ query_host }}"
-        job_name: job1
-        
+        job_name: job2
+        schedule: '@hourly'
+        shell_executor:
+          command: '/bin/true'
+        overwrite: False
       register: data
 
     - name: display cluster job info

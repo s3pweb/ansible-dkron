@@ -200,7 +200,12 @@ options:
       tls_ca:
         description:
           - Path to PEM file containing certs to use as root CAs (if cert required)
-        type: string 
+        type: string
+  overwrite:
+    descrption:
+      - Overwrite the job configuration if it already exists
+    type: bool
+    default: true
 
 author:
 - Guy Knights (contact@guyknights.com)
@@ -276,7 +281,8 @@ def run_module():
         syslog_processor=dict(type='dict', required=False),
         concurrency=dict(type='bool', required=False, default=True),
         shell_executor=dict(type='dict', required=False),
-        http_executor=dict(type='dict', required=False)
+        http_executor=dict(type='dict', required=False),
+        overwrite=dict(type='bool', required=False, default=True)
     )
 
     result = dict(
@@ -289,7 +295,7 @@ def run_module():
         supports_check_mode=True
     )
 
-    if module_args.params.shell_executor == None and module_args.params.http_executor == None:
+    if not module.params['shell_executor'] and not module.params['http_executor']:
         module.fail_json(msg="Module requires shell_executor or http_executor parameter specified.")
 
     api = DkronAPI(module)

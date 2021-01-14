@@ -195,12 +195,15 @@ class DkronAPI(object):
 	# Return:
 	#	* job create/update status
 	def upsert_job(self):
-		job_list = self.get_job_list()
 
-		if self.module.params.name not in job_list:
-			action = 'create'
-		else:
-			action = 'update'
+		# If the overwrite flag is False then we just return the content of the existing job
+		if not self.module.params['overwrite']:
+			job_list = self.get_job_list()
+
+			if self.module.params['job_name'] in job_list:
+				job_config = self.get_job_config(self.module.params['job_name'])
+				
+				return job_config, False
 
 		api_url = "{0}/jobs".format(self.root_url)
 
