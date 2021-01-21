@@ -19,6 +19,7 @@ class DkronAPI(object):
 			self.module.fail_json(msg="username is blank")
 
 		self.module = module
+
 		self.root_url = "{proto}://{endpoint}:{port}/v1".format(
 			proto=('https' if self.module.params['use_ssl'] else 'http'), 
 			endpoint=self.module.params['endpoint'],
@@ -194,22 +195,30 @@ class DkronAPI(object):
 
 	# Return:
 	#	* job create/update status
-	def upsert_job(self):
+	def upsert_job(self, job_config=None):
 
-		# If the overwrite flag is False then we just return the content of the existing job
+		if not job_config:
+			self.module.fail_json(msg="job configuration not valid: {config}".format(config=job_config))
+
+		# If the overwrite flag is False then just return the content of the existing job if it already exists.
 		if not self.module.params['overwrite']:
 			job_list = self.get_job_list()
 
-			if self.module.params['job_name'] in job_list:
-				job_config = self.get_job_config(self.module.params['job_name'])
+			if job_config['name'] in job_list:
+				job_config = self.get_job_config(job_config['name'])
 				
 				return job_config, False
 
+		# No existing job config has been returned so continue and create/overwrite the job.
 		api_url = "{0}/jobs".format(self.root_url)
 
-		response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='POST')
-		if info['status'] != 200:
-			self.module.fail_json(msg="failed to {action} job: {msg}".format(action=action, msg=info['msg']))
+		if self.module.params['run_on_create']:
+			api_url = "{url}?runoncreate".format(url=api_url)
+
+		response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='POST', data=json.dumps(job_config))
+
+		if info['status'] != 201:
+			self.module.fail_json(msg="failed to create or update job: {msg}".format(msg=info['msg']))
 
 		json_out = json.loads(response.read().decode('utf8'))
 

@@ -41,6 +41,10 @@ options:
     choices: [ all, status , leader , members , nodes , jobs ]
     default: all
 
+seealso:
+- module: knightsg.dkron.dkron_job_info
+- module: knightsg.dkron.dkron_job
+
 author:
 - Guy Knights (contact@guyknights.com)
 

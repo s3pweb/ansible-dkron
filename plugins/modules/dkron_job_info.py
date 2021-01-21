@@ -15,7 +15,7 @@ description:
 options:
   endpoint:
     description:
-      - The IP or hostname of a node in the cluster
+      - The IP or hostname of a node in the cluster.
     type: str
   port:
     description:
@@ -46,7 +46,11 @@ options:
       - Limit the history returned for each job to the amount specified by this parameter (eg. 5)
       - Will return full history for each job if omitted.
     type: int
-    
+
+seealso:
+- module: knightsg.dkron.dkron_job
+- module: knightsg.dkron.dkron_cluster_info
+
 author:
 - Guy Knights (contact@guyknights.com)
 
