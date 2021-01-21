@@ -204,8 +204,8 @@ class DkronAPI(object):
 		if not self.module.params['overwrite']:
 			job_list = self.get_job_list()
 
-			if job_config['name'] in job_list:
-				job_config = self.get_job_config(job_config['name'])
+			if self.module.params['job_name'] in job_list:
+				job_config = self.get_job_config(self.module.params['job_name'])
 				
 				return job_config, False
 
@@ -213,7 +213,7 @@ class DkronAPI(object):
 		api_url = "{0}/jobs".format(self.root_url)
 
 		if self.module.params['run_on_create']:
-			api_url = "{url}?runoncreate".format(url=api_url)
+			api_url = "{url}?runoncreate=true".format(url=api_url)
 
 		response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='POST', data=json.dumps(job_config))
 
@@ -253,15 +253,18 @@ class DkronAPI(object):
 	# Return:
 	#	* job enable/disable status
 	def toggle_job(self):
-		api_url = "{0}/jobs/{1}/toggle".format(self.root_url, job_name)
+		job_list = self.get_job_list()
 
-		response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='POST')
-		if info['status'] != 200:
-			self.module.fail_json(msg="failed to trigger: {msg}".format(msg=info['msg']))
+		if self.module.params['job_name'] in job_list:
+			api_url = "{0}/jobs/{1}/toggle".format(self.root_url, self.module.params['job_name'])
 
-		json_out = json.loads(response.read().decode('utf8'))
+			response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='POST')
+			if info['status'] != 200:
+				self.module.fail_json(msg="failed to trigger: {msg}".format(msg=info['msg']))
 
-		return json_out, True
+			json_out = json.loads(response.read().decode('utf8'))
+
+			return json_out, True
 
 	def _read_response(self, response):
 		try:

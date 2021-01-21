@@ -47,8 +47,9 @@ options:
   schedule:
     description:
       - Job schedule in 'Dkron' cron format (https://dkron.io/usage/cron-spec/).
+      - Not required if the 'toggle' parameter is set to true.
     type: string
-    required: true
+    required: true (false if 'toggle' is set to true)
   timezone:
     description:
       - Timezone for job execution.
@@ -202,11 +203,22 @@ options:
           - Path to PEM file containing certs to use as root CAs (if cert required)
         type: string
   overwrite:
-    descrption:
+    description:
       - Overwrite the job configuration if it already exists.
-      - If this is set to True, a job of the same name exists and the job configuration you pass is the same as the existing configuration, this module will still report the job status as changed.
+      - If this is set to true, a job of the same name exists and the job configuration you pass is the same as the existing configuration, this module will still report the job status as changed.
     type: bool
     default: true
+  toggle:
+    description:
+      - If set to true and job with the same name exists, this will enable/disable the job.
+      - If toggle is set the only other parameter required is job_name.
+    type: bool
+    default: false
+  state:
+    description:
+      - Whether to create/update the job ('present') or remove the job ('absent')
+    type: str
+    default: present
 
 seealso:
 - module: knightsg.dkron.dkron_job_info
@@ -271,7 +283,7 @@ def run_module():
         use_ssl=dict(type='bool', required=False, default=False),
         job_name=dict(type='str', required=True),
         display_name=dict(type='str', required=False),
-        schedule=dict(type='str', required=True),
+        schedule=dict(type='str', required=False),
         timezone=dict(type='str', required=False, default='UTC'),
         owner=dict(type='str', required=False),
         owner_email=dict(type='str', required=False),
@@ -287,7 +299,9 @@ def run_module():
         concurrency=dict(type='bool', required=False, default=True),
         shell_executor=dict(type='dict', required=False),
         http_executor=dict(type='dict', required=False),
-        overwrite=dict(type='bool', required=False, default=True)
+        overwrite=dict(type='bool', required=False, default=True),
+        toggle=dict(type='bool', required=False, default=False),
+        state=dict(type='str', required=False, default='present')
     )
 
     result = dict(
@@ -302,69 +316,78 @@ def run_module():
 
     api = DkronAPI(module)
 
-    # Construct job object from parameters
-    basic_params = [
-      'displayname',
-      'schedule',
-      'timezone',
-      'owner',
-      'owner_email',
-      'disabled',
-      'tags',
-      'metadata',
-      'retries',
-      'parent_job'
-    ]
+    if module.params['state'] == 'present':
 
-    job_config = {
-        'name': module.params['job_name']
-    }
+        if not module.params['toggle'] and not module.params['schedule']:
+            module.fail_json(msg="Module requires schedule parameter specified unless toggle=true.")
 
-    # Add basic parameters directly to job config
-    for param in module.params:
-      if module.params[param] and param in basic_params:
-        job_config[param] = module.params[param]
+        # Construct job object from parameters
+        basic_params = [
+          'displayname',
+          'schedule',
+          'timezone',
+          'owner',
+          'owner_email',
+          'disabled',
+          'tags',
+          'metadata',
+          'retries',
+          'parent_job'
+        ]
 
-    # Construct complex parameters and add to job config
-    if module.params['concurrency']:
-        job_config['concurrency'] = 'allow'
-    else:
-        job_config['concurrency'] = 'forbid'
+        job_config = {
+            'name': module.params['job_name']
+        }
 
-    if module.params['file_processor'] or module.params['log_processor'] or module.params['syslog_processor']:
-        job_config['processors'] = {}
+        # Add basic parameters directly to job config
+        for param in module.params:
+          if module.params[param] and param in basic_params:
+            job_config[param] = module.params[param]
 
-        if module.params['file_processor']:
-          job_config['processors']['files'] = module.params['file_processor']
+        # Construct complex parameters and add to job config
+        if module.params['concurrency']:
+            job_config['concurrency'] = 'allow'
+        else:
+            job_config['concurrency'] = 'forbid'
 
-        if module.params['log_processor']:
-          job_config['processors']['log'] = module.params['log_processor']
+        if module.params['file_processor'] or module.params['log_processor'] or module.params['syslog_processor']:
+            job_config['processors'] = {}
 
-        if module.params['syslog_processor']:
-          job_config['processors']['syslog'] = module.params['syslog_processor']
+            if module.params['file_processor']:
+              job_config['processors']['files'] = module.params['file_processor']
 
-    if module.params['shell_executor']:
-        job_config['executor'] = 'shell'
-        job_config['executor_config'] = module.params['shell_executor']
+            if module.params['log_processor']:
+              job_config['processors']['log'] = module.params['log_processor']
 
-    elif module.params['http_executor']:
-        job_config['executor'] = 'http'
-        job_config['executor_config'] = module.params['http_executor']
+            if module.params['syslog_processor']:
+              job_config['processors']['syslog'] = module.params['syslog_processor']
 
-    else:
-        module.fail_json(msg="Module requires shell_executor or http_executor parameter specified.")
+        if module.params['shell_executor']:
+            job_config['executor'] = 'shell'
+            job_config['executor_config'] = module.params['shell_executor']
 
-    # Do job create/update
-    data, changed = api.upsert_job(job_config)
+        elif module.params['http_executor']:
+            job_config['executor'] = 'http'
+            job_config['executor_config'] = module.params['http_executor']
 
-    if data:
-        result['data'] = data
-    else:
-        result['failed'] = True
+        else:
+            module.fail_json(msg="Module requires shell_executor or http_executor parameter specified.")
 
-    result['changed'] = changed
+        # Do create/update
+        data, changed = api.upsert_job(job_config)
+
+        if data:
+            result['data'] = data
+        else:
+            result['failed'] = True
+
+        result['changed'] = changed
+
+  else:
+    # Delete the job
+    pass
     
-    module.exit_json(**result)
+  module.exit_json(**result)
 
 def main():
     run_module()
