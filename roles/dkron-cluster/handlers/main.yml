@@ -1,6 +1,12 @@
 ---
 # handlers file for dkron-cluster
 - name: restart dkron
-  service:
+  ansible.builtin.service:
     name: dkron
     state: restarted
+
+- name: reload systemd units
+  ansible.builtin.systemd:
+    daemon_reload: yes
+  listen: 
+    - restart dkron

@@ -1,16 +1,51 @@
 ---
 # tasks file for dkron-cluster
-
-- name: install dkron
+- name: install dkron (autoupgrade)
   package:
     name: dkron
     state: latest
-  when: autoupgrade
+  when: 
+    - autoupgrade is defined
+    - autoupgrade == True
   notify:
     - restart dkron
 
-- name: install dkron
+- name: install dkron (current version)
   package:
     name: dkron
     state: present
-  when: not autoupgrade
+  when: 
+    - autoupgrade is not defined or autoupgrade == False
+    - version is not defined
+
+- name: install dkron (specific version)
+  apt:
+    name: "dkron={{ version }}"
+    state: present
+    force: yes # allow downgrades
+  when: 
+    - ansible_distribution in ['Debian', 'Ubuntu']
+    - autoupgrade is not defined or autoupgrade == False
+    - version is defined
+    - version is regex("[\d]+\.[\d]+\.[\d]+")
+  notify:
+    - restart dkron
+
+- name: install dkron (specific version)
+  package:
+    name: "dkron={{ version }}"
+    state: present
+  when: 
+    - ansible_distribution not in ['Debian', 'Ubuntu']
+    - autoupgrade is not defined or autoupgrade == False
+    - version is defined
+    - version is regex("[\d]+\.[\d]+\.[\d]+")
+  notify:
+    - restart dkron
+
+- fail:
+    msg: "Unable to install dkron package, supplied version is invalid."
+  when:
+    - autoupgrade is not defined or autoupgrade == False
+    - version is defined
+    - version is not regex("[\d]+\.[\d]+\.[\d]+")

@@ -6,7 +6,8 @@
   roles:
     - role: dkron-cluster
       vars:
-        autoupgrade: True
+        autoupgrade: False
+        version: 3.0.8
 
 - hosts: localhost
   gather_facts: False

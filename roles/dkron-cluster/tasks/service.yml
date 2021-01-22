@@ -6,30 +6,3 @@
     name: dkron
     state: started
     enabled: yes
-  when: not containerized
-
-- name: tasks if the dkron cluster is containerized
-  block:
-
-    - name: install pip
-      apt:
-        name: python3-pip
-        state: latest
-
-    - name: install psutil module
-      pip:
-        name: psutil
-        state: latest
-
-    - name: get pid of dkron process
-      pids:
-        name: dkron
-      register: pid_list
-
-    - name: start dkron service
-      command:
-        cmd: /usr/bin/dkron agent
-      when: 
-        - pid_list.pids|length < 1
-
-  when: containerized

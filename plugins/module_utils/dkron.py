@@ -134,6 +134,9 @@ class DkronAPI(object):
 		if json_out == "":
 			return None
 
+		if self.module.params['busy_only']:
+			return [job['name'] for job in json_out if job['name'] in self.get_running_jobs()]
+
 		return [job['name'] for job in json_out]
 
 	# Return:

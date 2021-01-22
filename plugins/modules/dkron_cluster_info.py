@@ -42,7 +42,8 @@ options:
     default: all
   busy_only:
     description:
-      - If set to true, only currently executing jobs will be returned in a returned jobs list
+      - If set to true only currently executing jobs will be returned in a returned jobs list.
+      - Has an effect only if a job list is returned, eg. type = 'all' or 'jobs'.
     type: bool
     default: False
 
