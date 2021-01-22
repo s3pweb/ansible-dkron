@@ -40,6 +40,11 @@ options:
     type: str
     choices: [ all, status , leader , members , nodes , jobs ]
     default: all
+  busy_only:
+    description:
+      - If set to true, only currently executing jobs will be returned in a returned jobs list
+    type: bool
+    default: False
 
 seealso:
 - module: knightsg.dkron.dkron_job_info
@@ -96,7 +101,8 @@ def run_module():
         username=dict(type='str', required=False),
         password=dict(type='str', required=False, no_log=True),
         use_ssl=dict(type='bool', required=False, default=False),
-        type=dict(type='str', choices=['all','status','leader','members','nodes','jobs'], default='all')
+        type=dict(type='str', choices=['all','status','leader','members','nodes','jobs'], default='all'),
+        busy_only=dict(type='bool', required=False, default=False)
     )
 
     result = dict(

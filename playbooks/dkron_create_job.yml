@@ -1,5 +1,5 @@
 ---
-# Create some jobs and then return a list of jobs in the cluster
+# Create/update a job and display the returned job configuration for reference
 
 - hosts: localhost
   gather_facts: False
@@ -20,8 +20,8 @@
         shell_executor:
           command: '/bin/true'
         overwrite: True
-      register: data
+      register: task_output
 
-    - name: display cluster job info
+    - name: display job config
       debug:
-        var: data
+        var: task_output

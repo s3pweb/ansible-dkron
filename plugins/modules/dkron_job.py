@@ -383,11 +383,15 @@ def run_module():
 
         result['changed'] = changed
 
-  else:
-    # Delete the job
-    pass
+    else:
+        data, changed = api.delete_job()
+
+        if data:
+            result['data'] = data
     
-  module.exit_json(**result)
+        result['changed'] = changed
+
+    module.exit_json(**result)
 
 def main():
     run_module()

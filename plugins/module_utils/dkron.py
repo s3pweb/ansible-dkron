@@ -137,6 +137,23 @@ class DkronAPI(object):
 		return [job['name'] for job in json_out]
 
 	# Return:
+	#	* running job executions
+	def get_running_jobs(self):
+		api_url = api_url = "{0}/busy".format(self.root_url)
+
+		response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='GET')
+
+		if info['status'] != 200:
+			self.module.fail_json(msg="failed to obtain list of busy jobs: {msg}".format(msg=info['msg']))
+
+		json_out = json.loads(response.read().decode('utf8'))
+
+		if json_out == "":
+			return None
+
+		return [job['job_name'] for job in json_out]
+
+	# Return:
 	#	* job configuration
 	#	* execution history
 	def get_job_info(self):
@@ -216,7 +233,6 @@ class DkronAPI(object):
 			api_url = "{url}?runoncreate=true".format(url=api_url)
 
 		response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='POST', data=json.dumps(job_config))
-
 		if info['status'] != 201:
 			self.module.fail_json(msg="failed to create or update job: {msg}".format(msg=info['msg']))
 
@@ -227,15 +243,20 @@ class DkronAPI(object):
 	# Return:
 	#	* job delete result
 	def delete_job(self):
-		api_url = "{0}/jobs/{1}".format(self.root_url, self.module.params.name)
+		job_list = self.get_job_list()
 
-		response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='DELETE')
-		if info['status'] != 200:
-			self.module.fail_json(msg="failed to delete job: {msg}".format(msg=info['msg']))
+		if self.module.params['job_name'] in job_list:
+			api_url = "{0}/jobs/{1}".format(self.root_url, self.module.params['job_name'])
 
-		json_out = json.loads(response.read().decode('utf8'))
+			response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='DELETE')
+			if info['status'] != 200:
+				self.module.fail_json(msg="failed to delete job: {msg}".format(msg=info['msg']))
 
-		return json_out, True
+			json_out = json.loads(response.read().decode('utf8'))
+
+			return json_out, True
+
+		return None, False
 
 	# Return:
 	#	* job execution successful
