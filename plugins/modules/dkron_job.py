@@ -211,7 +211,7 @@ options:
   toggle:
     description:
       - If set to true and job with the same name exists, this will enable/disable the job.
-      - If toggle is set the only other parameter required is job_name.
+      - If toggle is set the only other required parameter is job_name. All other parameters with values will be ignored.
     type: bool
     default: false
   state:
