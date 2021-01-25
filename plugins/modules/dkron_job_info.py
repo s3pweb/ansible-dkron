@@ -13,27 +13,6 @@ short_description: Gathers information about jobs in a Dkron cluster
 description:
 - Gathers information about jobs in a Dkron cluster.
 options:
-  endpoint:
-    description:
-      - The IP or hostname of a node in the cluster.
-    type: str
-  port:
-    description:
-      - The port used to connect to the cluster node.
-    type: int
-    default: 8080
-  username:
-    description:
-      - The username, if the cluster is protected by a reverse proxy with basic authentication.
-    type: str
-  password:
-    description:
-      - The password, if the cluster is protected by a reverse proxy with basic authentication.
-    type: str
-  use_ssl:
-    descrption:
-      - Use HTTPS to connect to the cluster node instead of HTTP.
-    type: bool
   job_names:
     description:
       - Name (or list of names) of job to query.
@@ -46,6 +25,8 @@ options:
       - Limit the history returned for each job to the amount specified by this parameter (eg. 5)
       - Will return full history for each job if omitted.
     type: int
+extends_documentation_fragment:
+- knightsg.dkron.connect
 
 seealso:
 - module: knightsg.dkron.dkron_job
@@ -53,7 +34,6 @@ seealso:
 
 author:
 - Guy Knights (contact@guyknights.com)
-
 '''
 
 EXAMPLES = r'''
@@ -105,11 +85,6 @@ from ansible_collections.knightsg.dkron.plugins.module_utils.dkron import DkronA
 
 def run_module():
     module_args = dict(
-        endpoint=dict(type='str', required=True),
-        port=dict(type='int', required=False, default=8080),
-        username=dict(type='str', required=False),
-        password=dict(type='str', required=False, no_log=True),
-        use_ssl=dict(type='bool', required=False, default=False),
         job_names=dict(type='list', required=False, aliases=['job_name']),
         limit_history=dict(type='int', required=False)
     )

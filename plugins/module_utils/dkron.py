@@ -4,6 +4,24 @@ from ansible.module_utils.urls import fetch_url
 from operator import itemgetter
 import json
 
+class DkronJobInterface(object):
+
+	# These module parameters can be submitted directly as part of a job config without needing any fancy mapping logic.
+	basic_params = [
+          'displayname',
+          'schedule',
+          'timezone',
+          'owner',
+          'owner_email',
+          'disabled',
+          'tags',
+          'metadata',
+          'retries',
+          'parent_job'
+    ]
+
+	def __init__(self, module):
+
 class DkronAPI(object):
 
 	def __init__(self, module):
@@ -73,7 +91,7 @@ class DkronAPI(object):
 	# Return:
 	#	* cluster status
 	def get_cluster_status(self):
-		api_url = api_url = "{0}/".format(self.root_url)
+		api_url = "{0}/".format(self.root_url)
 
 		response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='GET')
 

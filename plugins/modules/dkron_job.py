@@ -13,28 +13,6 @@ short_description: Create a Dkron job
 description:
 - Create a Dkron job.
 options:
-  endpoint:
-    description:
-      - The IP or hostname of a node in the cluster.
-    type: str
-    required: true
-  port:
-    description:
-      - The port used to connect to the cluster node.
-    type: int
-    default: 8080
-  username:
-    description:
-      - The username, if the cluster is protected by a reverse proxy with basic authentication.
-    type: str
-  password:
-    description:
-      - The password, if the cluster is protected by a reverse proxy with basic authentication.
-    type: str
-  use_ssl:
-    descrption:
-      - Use HTTPS to connect to the cluster node instead of HTTP.
-    type: bool
   job_name:
     description:
       - Name of job to create.
@@ -219,6 +197,8 @@ options:
       - Whether to create/update the job ('present') or remove the job ('absent')
     type: str
     default: present
+extends_documentation_fragment:
+- knightsg.dkron.connect
 
 seealso:
 - module: knightsg.dkron.dkron_job_info
@@ -226,7 +206,6 @@ seealso:
 
 author:
 - Guy Knights (contact@guyknights.com)
-
 '''
 
 EXAMPLES = r'''
@@ -272,57 +251,13 @@ ANSIBLE_METADATA = {
 }
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.knightsg.dkron.plugins.module_utils.dkron import DkronAPI
+from ansible_collections.knightsg.dkron.plugins.module_utils.base import dkron_argument_spec, dkron_required_together
+from ansible_collections.knightsg.dkron.plugins.module_utils.dkron_api_interface import DkronAPIInterface
 
-def run_module():
-    module_args = dict(
-        endpoint=dict(type='str', required=True),
-        port=dict(type='int', required=False, default=8080),
-        username=dict(type='str', required=False),
-        password=dict(type='str', required=False, no_log=True),
-        use_ssl=dict(type='bool', required=False, default=False),
-        job_name=dict(type='str', required=True),
-        display_name=dict(type='str', required=False),
-        schedule=dict(type='str', required=False),
-        timezone=dict(type='str', required=False, default='UTC'),
-        owner=dict(type='str', required=False),
-        owner_email=dict(type='str', required=False),
-        disabled=dict(type='bool', required=False, default=False),
-        tags=dict(type='dict', required=False),
-        metadata=dict(type='dict', required=False),
-        retries=dict(type='int', required=False, default=0),
-        parent_job=dict(type='str', required=False),
-        run_on_create=dict(type='bool', required=False, default=False),
-        file_processor=dict(type='dict', required=False),
-        log_processor=dict(type='dict', required=False),
-        syslog_processor=dict(type='dict', required=False),
-        concurrency=dict(type='bool', required=False, default=True),
-        shell_executor=dict(type='dict', required=False),
-        http_executor=dict(type='dict', required=False),
-        overwrite=dict(type='bool', required=False, default=True),
-        toggle=dict(type='bool', required=False, default=False),
-        state=dict(type='str', required=False, default='present')
-    )
+class DkronJobInterface(object):
 
-    result = dict(
-        changed=False,
-        failed=False
-    )
-
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True
-    )
-
-    api = DkronAPI(module)
-
-    if module.params['state'] == 'present':
-
-        if not module.params['toggle'] and not module.params['schedule']:
-            module.fail_json(msg="Module requires schedule parameter specified unless toggle=true.")
-
-        # Construct job object from parameters
-        basic_params = [
+  # These module parameters can be submitted directly as part of a job config without needing any fancy mapping logic.
+  basic_params = [
           'displayname',
           'schedule',
           'timezone',
@@ -333,7 +268,57 @@ def run_module():
           'metadata',
           'retries',
           'parent_job'
-        ]
+    ]
+
+  def __init__(self, module):
+
+
+def init_module():
+    module = AnsibleModule(
+      argument_spec=argument_spec,
+      supports_check_mode=False,
+      required_together=dkron_required_together
+    )
+
+    return module
+
+argument_spec = dkron_argument_spec()
+argument_spec.update(
+    job_name=dict(type='str', required=True),
+    display_name=dict(type='str', required=False),
+    schedule=dict(type='str', required=False),
+    timezone=dict(type='str', required=False, default='UTC'),
+    owner=dict(type='str', required=False),
+    owner_email=dict(type='str', required=False),
+    disabled=dict(type='bool', required=False, default=False),
+    tags=dict(type='dict', required=False),
+    metadata=dict(type='dict', required=False),
+    retries=dict(type='int', required=False, default=0),
+    parent_job=dict(type='str', required=False),
+    run_on_create=dict(type='bool', required=False, default=False),
+    file_processor=dict(type='dict', required=False),
+    log_processor=dict(type='dict', required=False),
+    syslog_processor=dict(type='dict', required=False),
+    concurrency=dict(type='bool', required=False, default=True),
+    shell_executor=dict(type='dict', required=False),
+    http_executor=dict(type='dict', required=False),
+    overwrite=dict(type='bool', required=False, default=True),
+    toggle=dict(type='bool', required=False, default=False),
+    state=dict(type='str', required=False, default='present')
+)
+
+def main():
+
+    module = init_module()
+    state = module.params['state']
+    toggle = module.params['toggle']
+    schedule = module.params['schedule']
+    job_name = module.params['job_name']
+
+    if module.params['state'] == 'present':
+
+        if not module.params['toggle'] and not module.params['schedule']:
+            module.fail_json(msg="Module requires schedule parameter specified unless toggle=true.")
 
         job_config = {
             'name': module.params['job_name']
@@ -392,9 +377,6 @@ def run_module():
         result['changed'] = changed
 
     module.exit_json(**result)
-
-def main():
-    run_module()
 
 if __name__ == '__main__':
     main()

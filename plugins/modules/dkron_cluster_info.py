@@ -13,27 +13,6 @@ short_description: Gathers information about a Dkron cluster
 description:
 - Gathers information about a Dkron cluster.
 options:
-  endpoint:
-    description:
-      - The IP or hostname of a node in the cluster
-    type: str
-  port:
-    description:
-      - The port used to connect to the cluster node.
-    type: int
-    default: 8080
-  username:
-    description:
-      - The username, if the cluster is protected by a reverse proxy with basic authentication.
-    type: str
-  password:
-    description:
-      - The password, if the cluster is protected by a reverse proxy with basic authentication.
-    type: str
-  use_ssl:
-    description:
-      - Use HTTPS to connect to the cluster node instead of HTTP.
-    type: bool
   type:
     description:
       - Which information to return.
@@ -46,6 +25,8 @@ options:
       - Has an effect only if a job list is returned, eg. type = 'all' or 'jobs'.
     type: bool
     default: False
+extends_documentation_fragment:
+- knightsg.dkron.connect
 
 seealso:
 - module: knightsg.dkron.dkron_job_info
@@ -53,7 +34,6 @@ seealso:
 
 author:
 - Guy Knights (contact@guyknights.com)
-
 '''
 
 EXAMPLES = r'''
@@ -97,11 +77,6 @@ from ansible_collections.knightsg.dkron.plugins.module_utils.dkron import DkronA
 
 def run_module():
     module_args = dict(
-        endpoint=dict(type='str', required=True),
-        port=dict(type='int', required=False, default=8080),
-        username=dict(type='str', required=False),
-        password=dict(type='str', required=False, no_log=True),
-        use_ssl=dict(type='bool', required=False, default=False),
         type=dict(type='str', choices=['all','status','leader','members','nodes','jobs'], default='all'),
         busy_only=dict(type='bool', required=False, default=False)
     )

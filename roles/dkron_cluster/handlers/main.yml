@@ -1,5 +1,5 @@
 ---
-# handlers file for dkron-cluster
+# handlers file for dkron_cluster
 - name: restart dkron
   ansible.builtin.service:
     name: dkron

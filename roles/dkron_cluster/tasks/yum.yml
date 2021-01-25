@@ -1,5 +1,5 @@
 ---
-# tasks file for dkron-cluster
+# tasks file for dkron_cluster
 - name: configure dkron yum repository
   yum_repository:
     name: dkron

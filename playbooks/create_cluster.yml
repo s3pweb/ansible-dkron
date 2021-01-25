@@ -4,7 +4,7 @@
 - hosts: all
   
   roles:
-    - role: dkron-cluster
+    - role: dkron_cluster
       vars:
         autoupgrade: True
 
