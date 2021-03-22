@@ -1,0 +1,21 @@
+---
+# A playbook for debugging and testing
+
+- hosts: localhost
+  gather_facts: False
+  collections:
+    - knightsg.dkron
+  vars:
+    query_host: "{{ groups['dkron']|map('extract', hostvars, ['ansible_host'])|first }}"
+    
+  tasks:
+
+    - name: debug module
+      dkron_cluster_info:
+        endpoint: "{{ query_host }}"
+        type: jobs
+      register: task_output
+
+    - name: display output
+      debug:
+        var: task_output

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from __future__ import (absolute_import, division, print_function)
-__metaclass__ = type
 
 # Copyright: (c) 2920, Guy Knights <contact@guyknights.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -73,10 +72,12 @@ ANSIBLE_METADATA = {
 }
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.knightsg.dkron.plugins.module_utils.dkron import DkronAPI
+from ansible_collections.knightsg.dkron.plugins.module_utils.dkron_module_base import dkron_argument_spec
+from ansible_collections.knightsg.dkron.plugins.module_utils.dkron_cluster import DkronCluster
 
 def run_module():
-    module_args = dict(
+    module_args = dkron_argument_spec()
+    module_args.update(
         type=dict(type='str', choices=['all','status','leader','members','nodes','jobs'], default='all'),
         busy_only=dict(type='bool', required=False, default=False)
     )
@@ -92,9 +93,9 @@ def run_module():
         supports_check_mode=True
     )
 
-    api = DkronAPI(module)
+    cluster = DkronCluster(module)
 
-    data, changed = api.get_cluster_info()
+    data, changed = cluster.get_cluster_info()
 
     if data:
         result['ansible_module_results'] = data

@@ -81,25 +81,23 @@ ANSIBLE_METADATA = {
 }
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.knightsg.dkron.plugins.module_utils.dkron import DkronAPI
+from ansible_collections.knightsg.dkron.plugins.module_utils.dkron import DkronAPIInterface
+from ansible_collections.knightsg.dkron.plugins.module_utils.base import dkron_argument_spec, dkron_required_together
 
-def run_module():
-    module_args = dict(
-        job_names=dict(type='list', required=False, aliases=['job_name']),
-        limit_history=dict(type='int', required=False)
-    )
-
-    result = dict(
-        changed=False,
-        failed=False
+def main():
+    argument_spec = dkron_argument_spec()
+    argument_spec.update(
+      job_names=dict(type='list', required=False, aliases=['job_name']),
+      limit_history=dict(type='int', required=False)
     )
 
     module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True
+        argument_spec=argument_spec,
+        supports_check_mode=False,
+        required_together=dkron_required_together()
     )
 
-    api = DkronAPI(module)
+    api = DkronAPIInterface(module)
 
     data, changed = api.get_job_info()
 
@@ -111,9 +109,6 @@ def run_module():
     result['changed'] = changed
     
     module.exit_json(**result)
-
-def main():
-    run_module()
 
 if __name__ == '__main__':
     main()

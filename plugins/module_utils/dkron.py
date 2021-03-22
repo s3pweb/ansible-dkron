@@ -6,7 +6,7 @@ import json
 
 class DkronJobInterface(object):
 
-	# These module parameters can be submitted directly as part of a job config without needing any fancy mapping logic.
+	# These module parameters can be submitted directly as part of a job config without needing any fancy conversion logic.
 	basic_params = [
           'displayname',
           'schedule',
@@ -21,6 +21,7 @@ class DkronJobInterface(object):
     ]
 
 	def __init__(self, module):
+		pass
 
 class DkronAPI(object):
 
