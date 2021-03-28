@@ -5,7 +5,7 @@ from operator import itemgetter
 
 class DkronJob(DkronAPIInterface):
 
-	job_attributes = [
+	simple_job_attributes = [
 		'name',
 		'displayname',
 		'schedule',
@@ -17,21 +17,29 @@ class DkronJob(DkronAPIInterface):
 		'metadata',
 		'retries',
 		'parent_job',
+		'run_on_create',
 		'concurrency',
-		'processors',
-		'executor',
-		'executor_config'
+		'overwrite',
+		'limit_history',
+		'toggle',
+		'state'
 	]
 	
+	complex_job_attributes = [
+		'file_processor',
+		'log_processor',
+		'syslog_processor',
+		'shell_executor',
+		'http_executor'
+	]
+
 	def __init__(self, module):
 		
 		super().__init__(module)
 
-		if 'name' in self.module.params:
-			self.name = self.module.params['name']
-
-		if 'display_name' in self.module.params:
-			self.displayname = self.module.params['display_name']
+		for job_attribute in self.simple_job_attributes:
+			if job_attribute not in self.complex_job_attributes and job_attribute in self.module.params.keys():
+				setattr(self, job_attribute, self.module.params[job_attribute])
 
 		if 'file_processor' in self.module.params or 'log_processor' in self.module.params or 'syslog_processor' in self.module.params:
 			self.processors = {}
@@ -52,9 +60,6 @@ class DkronJob(DkronAPIInterface):
 		if 'http_executor' in self.module.params:
 			self.executor = 'http'
 			self.executor_config = self.module.params['http_executor']
-
-		if 'limit_history' in self.module.params:
-			self.limit_history = self.module.params['limit_history']
 
 	###
 	# Description: Query the job configuration.
