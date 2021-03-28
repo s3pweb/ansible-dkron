@@ -13,13 +13,13 @@ short_description: Gathers information about jobs in a Dkron cluster
 description:
 - Gathers information about jobs in a Dkron cluster.
 options:
-  job_names:
+  names:
     description:
       - Name (or list of names) of job to query.
       - Will query all jobs if omitted.
     type: list
     aliases:
-      - job_name
+      - name
   limit_history:
     description
       - Limit the history returned for each job to the amount specified by this parameter (eg. 5)
@@ -81,28 +81,35 @@ ANSIBLE_METADATA = {
 }
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.knightsg.dkron.plugins.module_utils.dkron import DkronAPIInterface
-from ansible_collections.knightsg.dkron.plugins.module_utils.base import dkron_argument_spec, dkron_required_together
+from ansible_collections.knightsg.dkron.plugins.module_utils.dkron_module_base import dkron_argument_spec, dkron_required_together
+from ansible_collections.knightsg.dkron.plugins.module_utils.dkron_job import DkronJob
 
 def main():
-    argument_spec = dkron_argument_spec()
-    argument_spec.update(
-      job_names=dict(type='list', required=False, aliases=['job_name']),
-      limit_history=dict(type='int', required=False)
+    module_args = dkron_argument_spec()
+    module_args.update(
+      names=dict(type='list', required=False, aliases=['name']),
+      limit_history=dict(type='int', required=False, default=0)
+    )
+
+    result = dict(
+        changed=False,
+        failed=False,
+        ansible_module_results={}
     )
 
     module = AnsibleModule(
-        argument_spec=argument_spec,
+        argument_spec=module_args,
         supports_check_mode=False,
         required_together=dkron_required_together()
     )
 
-    api = DkronAPIInterface(module)
+    job = DkronJob(module)
 
-    data, changed = api.get_job_info()
-
-    if data:
-        result['data'] = data
+    job_config, changed = job.config()
+    job_history, changed = job.history()
+    if job_config and job_history:
+        result['configuration'] = job_config
+        result['history'] = job_history
     else:
         result['failed'] = True
 

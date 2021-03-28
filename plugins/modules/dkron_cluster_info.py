@@ -72,7 +72,7 @@ ANSIBLE_METADATA = {
 }
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.knightsg.dkron.plugins.module_utils.dkron_module_base import dkron_argument_spec
+from ansible_collections.knightsg.dkron.plugins.module_utils.dkron_module_base import dkron_argument_spec, dkron_required_together
 from ansible_collections.knightsg.dkron.plugins.module_utils.dkron_cluster import DkronCluster
 
 def run_module():
@@ -90,12 +90,13 @@ def run_module():
 
     module = AnsibleModule(
         argument_spec=module_args,
-        supports_check_mode=True
+        supports_check_mode=True,
+        required_together=dkron_required_together()
     )
 
     cluster = DkronCluster(module)
 
-    data, changed = cluster.get_cluster_info()
+    data, changed = cluster.info()
 
     if data:
         result['ansible_module_results'] = data

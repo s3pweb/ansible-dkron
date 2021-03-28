@@ -1,101 +1,121 @@
 from __future__ import (absolute_import, division, print_function)
 
-from .dkron_api_interface import DkronAPIInterface
+from .dkron_module_base import DkronAPIInterface
 
 class DkronCluster(DkronAPIInterface):
 
 	def __init__(self, module):
 		super().__init__(module)
 
-	def get_cluster_info(self):
+	def info(self):
 		data = {}
-		changed = False
 
 		if self.module.params['type'] in ['all', 'status']:
-			status, changed = self.get_cluster_status()
-
-			data['status'] = status
-			changed = True
+			data['status'] = self.cluster_status()
 
 		if self.module.params['type'] in ['all', 'leader']:
-			leader, changed = self.get_leader_node()
-
-			data['leader'] = leader
-			changed = True
+			data['leader'] = self.leader_node()
 
 		if self.module.params['type'] in ['all', 'members', 'nodes']:
-			members = self.get_member_nodes()
-
-			data['members'] = members
-			changed = True
+			data['members'] = self.member_nodes()
 
 		if self.module.params['type'] in ['all', 'jobs']:
-			jobs = self.get_job_list()
-			
-			if jobs:
-				data['jobs'] = jobs
-				changed = True
+			data['jobs'] = self.job_list()
 
-
-		return data, changed
+		return data, True
 
 	## Return:
 	#	* cluster (serf) status
-	def get_cluster_status(self):
+	def cluster_status(self):
 		uri = "/"
 
-		return self.get(uri)
+		try:
+			response = self.get(uri)
+
+			if 'serf' in response:
+				status = response['serf']
+			else:
+				status = {}
+
+		except DkronLookupException as e:
+			self.module.fail_json(msg="cluster status query failed ({err})".format(err=str(e)))
+
+		except DkronEmptyResponseException as e:
+			self.module.fail_json(msg="cluster status query failed ({err})".format(err=str(e)))
+
+		return status
 
 	## Return:
 	#	* leader node address
-	def get_leader_node(self):
+	def leader_node(self):
 		uri = "/leader"
 
-		response = self.get(uri)
-		if response:
-			leader = response['Addr']
-		else:
-			leader = None
+		try:
+			response = self.get(uri)
+
+			if response:
+				leader = response['Addr']
+			else:
+				leader = None
+
+		except DkronLookupException as e:
+			self.module.fail_json(msg="cluster leader query failed ({err})".format(err=str(e)))
+
+		except DkronEmptyResponseException as e:
+			self.module.fail_json(msg="cluster leader query failed ({err})".format(err=str(e)))
 
 		return leader
 
 	## Return:
 	#	* cluster members
-	def get_member_nodes(self):
+	def member_nodes(self):
 		uri = "/members"
 
-		response = self.get(uri)
+		try:
+			response = self.get(uri)
+			node_list = [member['Addr'] for member in response]
 
-		if response:
-			return [member['Addr'] for member in response]
-		else:
+		except DkronLookupException as e:
+			self.module.fail_json(msg="cluster members query failed ({err})".format(err=str(e)))
+
+		except DkronEmptyResponseException as e:
 			return []
+
+		return node_list
 
 	## Return:
 	#	* list of jobs
-	def get_job_list(self):
+	def job_list(self):
 		uri = "/jobs"
 
-		response = self.get(uri)
-
-		if response:
+		try:
+			response = self.get(uri)
 			if self.module.params['busy_only']:
-				running_jobs = self.get_running_jobs()
-
-				return [job['name'] for job in response if job['name'] in running_jobs]
+				job_list = [job['name'] for job in response if job['name'] in self.running_jobs()]
 			else:
-				return [job['name'] for job in response]
-		else:
-			return None
+				job_list = [job['name'] for job in response]
+
+		except DkronLookupException as e:
+			self.module.fail_json(msg="cluster job list query failed ({err})".format(err=str(e)))
+
+		except DkronEmptyResponseException as e:
+			return []
+
+		return job_list
 
 	## Return:
 	#	* running job executions
-	def get_running_jobs(self):
+	def running_jobs(self):
 		uri = "/busy"
 
-		response = self.get(uri)
+		try:
+			response = self.get(uri)
+			job_list = [job['job_name'] for job in response]
 
-		if response:
-			return [job['job_name'] for job in response]
-		else:
+		except DkronLookupException as e:
+			self.module.fail_json(msg="cluster status query failed ({err})".format(err=str(e)))
+
+		except DkronEmptyResponseException as e:
 			return []
+
+		return job_list

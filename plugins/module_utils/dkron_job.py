@@ -1,6 +1,6 @@
 from __future__ import (absolute_import, division, print_function)
 
-from .dkron_api_interface import DkronAPIInterface
+from .dkron_module_base import DkronAPIInterface, DkronLookupException, DkronEmptyResponseException
 from operator import itemgetter
 
 class DkronJob(DkronAPIInterface):
@@ -23,81 +23,86 @@ class DkronJob(DkronAPIInterface):
 		'executor_config'
 	]
 	
-	def __init__(self, **kwargs):
+	def __init__(self, module):
 		
 		super().__init__(module)
-		self.__dict__.update(kwargs)
 
-		if self.job_name:
-			self.name = self.job_name
+		if 'name' in self.module.params:
+			self.name = self.module.params['name']
 
-		if self.display_name:
-			self.displayname = self.display_name
+		if 'display_name' in self.module.params:
+			self.displayname = self.module.params['display_name']
 
-		if not self.file_processor and not self.log_processor and not self.syslog_processor:
-			raise Exception('Job instance creation failed, no valid processor supplied')
-		else:
+		if 'file_processor' in self.module.params or 'log_processor' in self.module.params or 'syslog_processor' in self.module.params:
 			self.processors = {}
 
-			if self.file_processor:
-				self.processors['files'] = self.file_processor
-				# Let's free up some memory
-				del self.file_processor
+			if 'file_processor' in self.module.params:
+				self.processors['files'] = self.module.params['file_processor']
 
-			if self.log_processor:
-				self.processors['log'] = self.log_processor
-				del self.log_processor
+			if 'log_processor' in self.module.params:
+				self.processors['log'] = self.module.params['log_processor']
 
-			if self.syslog_processor:
-				self.processors['syslog'] = self.syslog_processor
-				del self.syslog_processor
+			if 'syslog_processor' in self.module.params:
+				self.processors['syslog'] = self.module.params['syslog_processor']
 
-		if self.shell_executor:
+		if 'shell_executor' in self.module.params:
 			self.executor = 'shell'
-			self.executor_config = self.shell_executor
-			# Let's free up some memory
-			del self.shell_executor
+			self.executor_config = self.module.params['shell_executor']
 
-		if self.http_executor:
+		if 'http_executor' in self.module.params:
 			self.executor = 'http'
-			self.executor_config = self.http_executor
-			del self.http_executor
+			self.executor_config = self.module.params['http_executor']
+
+		if 'limit_history' in self.module.params:
+			self.limit_history = self.module.params['limit_history']
 
 	###
 	# Description: Query the job configuration.
 	#
 	# Return:
 	#   - job configuration dict
-	def get_job_config():
+	def config(self):
 		uri = "/jobs/{job_name}".format(job_name=self.name)
 
-		response = self.get(uri)
+		try:
+			response = self.get(uri)
+		except DkronLookupException as e:
+			self.module.fail_json(msg="job config query failed ({err})".format(err=str(e)))
+		except DkronEmptyResponseException as e:
+			self.module.fail_json(msg="job config query failed ({err})".format(err=str(e)))
 
-		return response
+		return response, True
 
 	###
 	# Description: Query the job execution history.
 	#
 	# Return:
 	#   - job executions list (limited list if specified)
-	def get_job_history():
+	def history(self):
 		uri = "/jobs/{job_name}/executions".format(job_name=self.name)
 
 		response = self.get(uri)
 
-		if self.limit_history != 0:
-			history = sorted(response, key=itemgetter('started_at'), reverse=True)[:self.limit_history]
-		else:
-			history = sorted(response, key=itemgetter('started_at'), reverse=True)
+		try:
+			response = self.get(uri)
 
-		return history
+			if self.limit_history != 0:
+				history = sorted(response, key=itemgetter('started_at'), reverse=True)[:self.limit_history]
+			else:
+				history = sorted(response, key=itemgetter('started_at'), reverse=True)
+		except DkronLookupException as e:
+			self.module.fail_json(msg="job execution history query failed ({err})".format(err=str(e)))
+		except DkronEmptyResponseException as e:
+			self.module.fail_json(msg="job execution history query failed ({err})".format(err=str(e)))
+
+		return history, True
 
 	###
 	# Description: Update a job in a cluster from the job's instance configuration.
 	#
 	# Return:
 	#   - job create/update status
-	def to_data(self):
+	def upsert(self):
 
 		uri = "/jobs"
 		params = None
@@ -112,6 +117,5 @@ class DkronJob(DkronAPIInterface):
 				data[item] = self.__dict__[item]
 
 		response = self.post(uri, success_response=201, params=params, data=request_data)
-		changed = True
 
-		return response, changed
+		return response, True
