@@ -19,6 +19,7 @@
       dkron_job_info:
         endpoint: "{{ query_host }}"
         name: job
+        limit_history: 1
       register: task_output
 
     - name: display output

@@ -81,10 +81,55 @@ ANSIBLE_METADATA = {
 }
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.knightsg.dkron.plugins.module_utils.dkron_module_base import dkron_argument_spec, dkron_required_together
-from ansible_collections.knightsg.dkron.plugins.module_utils.dkron_job import DkronJob
+from ansible_collections.knightsg.dkron.plugins.module_utils.base import DkronAPIInterface, DkronLookupException, DkronEmptyResponseException, dkron_argument_spec, dkron_required_together
+from operator import itemgetter
 
-def main():
+def get_job_config(module, api):
+  uri = "/jobs/{name}".format(name=module.params['name'])
+
+  try:
+    response = api.get(uri)
+  except DkronLookupException as e:
+    self.module.fail_json(msg="job config query failed ({err})".format(err=str(e)))
+  except DkronEmptyResponseException as e:
+    self.module.fail_json(msg="job config query failed ({err})".format(err=str(e)))
+
+  if not response:
+    return False
+  
+  return response 
+
+
+###
+# Description: Query the job execution history.
+#
+# Return:
+#   - job executions list (limited list if specified)
+#   - empty list if response is empty
+def get_job_history(module, api):
+  uri = "/jobs/{name}/executions".format(name=module.params['name'])
+
+  response = api.get(uri)
+
+  try:
+    response = api.get(uri)
+
+    if not response:
+      return []
+
+    if module.params['limit_history'] != 0:
+      history = sorted(response, key=itemgetter('started_at'), reverse=True)[:module.params['limit_history']]
+    else:
+      history = sorted(response, key=itemgetter('started_at'), reverse=True)
+
+  except DkronLookupException as e:
+    module.fail_json(msg="job execution history query failed ({err})".format(err=str(e)))
+  except DkronEmptyResponseException as e:
+    module.fail_json(msg="job execution history query failed ({err})".format(err=str(e)))
+
+  return history
+
+if __name__ == '__main__':
     module_args = dkron_argument_spec()
     module_args.update(
       names=dict(type='list', required=False, aliases=['name']),
@@ -103,19 +148,16 @@ def main():
         required_together=dkron_required_together()
     )
 
-    job = DkronJob(module)
+    data = {}
+    api = DkronAPIInterface(module)
 
-    job_config, changed = job.config()
-    job_history, changed = job.history()
-    if job_config and job_history:
-        result['configuration'] = job_config
-        result['history'] = job_history
+    data['job_config'] = get_job_config(module, api)
+    data['history'] = get_job_history(module, api)
+
+    if data['job_config'] == False:
+      result['failed'] = True
     else:
-        result['failed'] = True
-
-    result['changed'] = changed
+      result['ansible_module_results'] = data
+      result['changed'] = True
     
     module.exit_json(**result)
-
-if __name__ == '__main__':
-    main()

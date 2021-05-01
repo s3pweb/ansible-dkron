@@ -1,6 +1,6 @@
 from __future__ import (absolute_import, division, print_function)
 
-from .dkron_module_base import DkronAPIInterface, DkronLookupException, DkronEmptyResponseException
+from .base import DkronAPIInterface, DkronLookupException, DkronEmptyResponseException
 from operator import itemgetter
 
 class DkronJob(DkronAPIInterface):
@@ -33,7 +33,7 @@ class DkronJob(DkronAPIInterface):
 		'http_executor'
 	]
 
-	def __init__(self, module):
+	def __init__(self, module, load_config=True):
 		
 		super().__init__(module)
 
@@ -61,12 +61,15 @@ class DkronJob(DkronAPIInterface):
 			self.executor = 'http'
 			self.executor_config = self.module.params['http_executor']
 
+		if load_config:
+			self.read_config()
+
 	###
-	# Description: Query the job configuration.
+	# Description: Query the job configuration and set instance params from response fields.
 	#
 	# Return:
-	#   - job configuration dict
-	def config(self):
+	#   - True
+	def read_config(self):
 		uri = "/jobs/{job_name}".format(job_name=self.name)
 
 		try:
@@ -76,7 +79,21 @@ class DkronJob(DkronAPIInterface):
 		except DkronEmptyResponseException as e:
 			self.module.fail_json(msg="job config query failed ({err})".format(err=str(e)))
 
-		return response, True
+		if not response:
+			return False
+
+		for field in response:
+			setattr(self, field, response[field])
+			return True	
+
+	def get_config(self):
+
+		config = {}
+
+		for attribute in self.simple_job_attributes:
+			config[attribute] = getattr(self, attribute)
+
+		return config
 
 	###
 	# Description: Query the job execution history.

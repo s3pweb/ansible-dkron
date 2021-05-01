@@ -1,6 +1,6 @@
 from __future__ import (absolute_import, division, print_function)
 
-from .dkron_module_base import DkronAPIInterface
+from .base import DkronAPIInterface
 
 class DkronCluster(DkronAPIInterface):
 

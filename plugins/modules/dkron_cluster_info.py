@@ -72,10 +72,95 @@ ANSIBLE_METADATA = {
 }
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.knightsg.dkron.plugins.module_utils.dkron_module_base import dkron_argument_spec, dkron_required_together
-from ansible_collections.knightsg.dkron.plugins.module_utils.dkron_cluster import DkronCluster
+from ansible_collections.knightsg.dkron.plugins.module_utils.base import DkronAPIInterface, DkronLookupException, DkronEmptyResponseException, dkron_argument_spec, dkron_required_together
 
-def run_module():
+def cluster_status(module, api):
+  uri = "/"
+
+  try:
+    response = api.get(uri)
+
+    if 'serf' in response:
+      status = response['serf']
+    else:
+      status = {}
+
+  except DkronLookupException as e:
+    module.fail_json(msg="cluster status query failed ({err})".format(err=str(e)))
+
+  except DkronEmptyResponseException as e:
+    module.fail_json(msg="cluster status query failed ({err})".format(err=str(e)))
+
+  return status
+
+def leader_node(module, api):
+  uri = "/leader"
+
+  try:
+    response = api.get(uri)
+
+    if response:
+      leader = response['Addr']
+    else:
+      leader = None
+
+  except DkronLookupException as e:
+    module.fail_json(msg="cluster leader query failed ({err})".format(err=str(e)))
+
+  except DkronEmptyResponseException as e:
+    module.fail_json(msg="cluster leader query failed ({err})".format(err=str(e)))
+
+  return leader
+
+def member_nodes(module, api):
+  uri = "/members"
+
+  try:
+    response = api.get(uri)
+    node_list = [member['Addr'] for member in response]
+
+  except DkronLookupException as e:
+    module.fail_json(msg="cluster members query failed ({err})".format(err=str(e)))
+
+  except DkronEmptyResponseException as e:
+    return []
+
+  return node_list
+
+def job_list(module, api):
+  uri = "/jobs"
+
+  try:
+    response = api.get(uri)
+    if 'busy_only' in module.params and module.params['busy_only']:
+      job_list = [job['name'] for job in response if job['name'] in running_jobs(module, api)]
+    else:
+      job_list = [job['name'] for job in response]
+
+  except DkronLookupException as e:
+    module.fail_json(msg="cluster job list query failed ({err})".format(err=str(e)))
+
+  except DkronEmptyResponseException as e:
+    return []
+
+  return job_list
+
+def running_jobs(module, api):
+  uri = "/busy"
+
+  try:
+    response = api.get(uri)
+    job_list = [job['job_name'] for job in response]
+
+  except DkronLookupException as e:
+    module.fail_json(msg="cluster status query failed ({err})".format(err=str(e)))
+
+  except DkronEmptyResponseException as e:
+    return []
+
+  return job_list
+
+if __name__ == '__main__':
     module_args = dkron_argument_spec()
     module_args.update(
         type=dict(type='str', choices=['all','status','leader','members','nodes','jobs'], default='all'),
@@ -94,21 +179,26 @@ def run_module():
         required_together=dkron_required_together()
     )
 
-    cluster = DkronCluster(module)
+    data = {}
+    api = DkronAPIInterface(module)
 
-    data, changed = cluster.info()
+    if module.params['type'] in ['all', 'status']:
+      data['status'] = cluster_status(module, api)
+      changed = True
 
-    if data:
-        result['ansible_module_results'] = data
-    else:
-        result['failed'] = True
+    if module.params['type'] in ['all', 'leader']:
+      data['leader'] = leader_node(module, api)
+      changed = True
 
-    result['changed'] = changed
-    
+    if module.params['type'] in ['all', 'members', 'nodes']:
+      data['members'] = member_nodes(module, api)
+      changed = True
+
+    if module.params['type'] in ['all', 'jobs']:
+      data['jobs'] = job_list(module, api)
+      changed = True
+
+    if changed:
+      result['ansible_module_results'] = data
+
     module.exit_json(**result)
-
-def main():
-    run_module()
-
-if __name__ == '__main__':
-    main()
