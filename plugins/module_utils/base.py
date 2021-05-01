@@ -91,7 +91,7 @@ class DkronAPIInterface(object):
 		if json_response == "":
 			raise DkronEmptyResponseException
 
-		return json_out, True
+		return json_response
 
 	def delete(self, api_path, success_response=200, params=None, data=None):
 		response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='DELETE')

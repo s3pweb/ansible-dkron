@@ -13,7 +13,7 @@ short_description: Create a Dkron job
 description:
 - Create a Dkron job.
 options:
-  job_name:
+  name:
     description:
       - Name of job to create.
     type: string
@@ -25,9 +25,9 @@ options:
   schedule:
     description:
       - Job schedule in 'Dkron' cron format (https://dkron.io/usage/cron-spec/).
-      - Not required if the 'toggle' parameter is set to true.
+      - Defaults to '@every 1m'
     type: string
-    required: true (false if 'toggle' is set to true)
+    required: false
   timezone:
     description:
       - Timezone for job execution.
@@ -224,7 +224,7 @@ EXAMPLES = r'''
     retries: 3
     shell_executor
       command: '/bin/sh echo "Hello ${MY_FIRST_NAME} ${MY_LAST_NAME}!"'
-      env: 'MYNAME=John,MY_LAST_NAME=Smith"
+      env: 'MYNAME=John,MY_LAST_NAME=Smith'
       cwd: '/home/jsmith'
 
 '''
@@ -251,132 +251,128 @@ ANSIBLE_METADATA = {
 }
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.knightsg.dkron.plugins.module_utils.base import dkron_argument_spec, dkron_required_together
-from ansible_collections.knightsg.dkron.plugins.module_utils.dkron_api_interface import DkronAPIInterface
+from ansible_collections.knightsg.dkron.plugins.module_utils.base import DkronAPIInterface, DkronLookupException, DkronEmptyResponseException, dkron_argument_spec, dkron_required_together
 
-class DkronJobInterface(object):
+simple_options = [
+  'name',
+  'displayname',
+  'schedule',
+  'timezone',
+  'owner',
+  'owner_email',
+  'disabled',
+  'tags',
+  'metadata',
+  'retries',
+  'parent_job',
+  'run_on_create',
+  'concurrency',
+  'overwrite',
+  'limit_history',
+  'toggle',
+  'state'
+]
 
-  # These module parameters can be submitted directly as part of a job config without needing any fancy mapping logic.
-  basic_params = [
-          'displayname',
-          'schedule',
-          'timezone',
-          'owner',
-          'owner_email',
-          'disabled',
-          'tags',
-          'metadata',
-          'retries',
-          'parent_job'
-    ]
+def upsert_job(module, api):
 
-  def __init__(self, module):
+    uri = "/jobs"
+    params = None
 
+    job_config = {
+        'name': module.params['name']
+    }
 
-def init_module():
-    module = AnsibleModule(
-      argument_spec=argument_spec,
-      supports_check_mode=False,
-      required_together=dkron_required_together
-    )
+    # Add basic parameters directly to job config
+    for param in module.params:
+      if module.params[param] and param in simple_options:
+        job_config[param] = module.params[param]
 
-    return module
-
-argument_spec = dkron_argument_spec()
-argument_spec.update(
-    job_name=dict(type='str', required=True),
-    display_name=dict(type='str', required=False),
-    schedule=dict(type='str', required=False),
-    timezone=dict(type='str', required=False, default='UTC'),
-    owner=dict(type='str', required=False),
-    owner_email=dict(type='str', required=False),
-    disabled=dict(type='bool', required=False, default=False),
-    tags=dict(type='dict', required=False),
-    metadata=dict(type='dict', required=False),
-    retries=dict(type='int', required=False, default=0),
-    parent_job=dict(type='str', required=False),
-    run_on_create=dict(type='bool', required=False, default=False),
-    file_processor=dict(type='dict', required=False),
-    log_processor=dict(type='dict', required=False),
-    syslog_processor=dict(type='dict', required=False),
-    concurrency=dict(type='bool', required=False, default=True),
-    shell_executor=dict(type='dict', required=False),
-    http_executor=dict(type='dict', required=False),
-    overwrite=dict(type='bool', required=False, default=True),
-    toggle=dict(type='bool', required=False, default=False),
-    state=dict(type='str', required=False, default='present')
-)
-
-def main():
-
-    module = init_module()
-    state = module.params['state']
-    toggle = module.params['toggle']
-    schedule = module.params['schedule']
-    job_name = module.params['job_name']
-
-    if module.params['state'] == 'present':
-
-        if not module.params['toggle'] and not module.params['schedule']:
-            module.fail_json(msg="Module requires schedule parameter specified unless toggle=true.")
-
-        job_config = {
-            'name': module.params['job_name']
-        }
-
-        # Add basic parameters directly to job config
-        for param in module.params:
-          if module.params[param] and param in basic_params:
-            job_config[param] = module.params[param]
-
-        # Construct complex parameters and add to job config
-        if module.params['concurrency']:
-            job_config['concurrency'] = 'allow'
-        else:
-            job_config['concurrency'] = 'forbid'
-
-        if module.params['file_processor'] or module.params['log_processor'] or module.params['syslog_processor']:
-            job_config['processors'] = {}
-
-            if module.params['file_processor']:
-              job_config['processors']['files'] = module.params['file_processor']
-
-            if module.params['log_processor']:
-              job_config['processors']['log'] = module.params['log_processor']
-
-            if module.params['syslog_processor']:
-              job_config['processors']['syslog'] = module.params['syslog_processor']
-
-        if module.params['shell_executor']:
-            job_config['executor'] = 'shell'
-            job_config['executor_config'] = module.params['shell_executor']
-
-        elif module.params['http_executor']:
-            job_config['executor'] = 'http'
-            job_config['executor_config'] = module.params['http_executor']
-
-        else:
-            module.fail_json(msg="Module requires shell_executor or http_executor parameter specified.")
-
-        # Do create/update
-        data, changed = api.upsert_job(job_config)
-
-        if data:
-            result['data'] = data
-        else:
-            result['failed'] = True
-
-        result['changed'] = changed
-
+    # Construct complex parameters and add to job config
+    if module.params['concurrency']:
+        job_config['concurrency'] = 'allow'
     else:
-        data, changed = api.delete_job()
+        job_config['concurrency'] = 'forbid'
 
-        if data:
-            result['data'] = data
-    
-        result['changed'] = changed
+    if module.params['file_processor'] or module.params['log_processor'] or module.params['syslog_processor']:
+        job_config['processors'] = {}
 
-    module.exit_json(**result)
+        if module.params['file_processor']:
+          job_config['processors']['files'] = module.params['file_processor']
+
+        if module.params['log_processor']:
+          job_config['processors']['log'] = module.params['log_processor']
+
+        if module.params['syslog_processor']:
+          job_config['processors']['syslog'] = module.params['syslog_processor']
+
+    if module.params['shell_executor']:
+        job_config['executor'] = 'shell'
+        job_config['executor_config'] = module.params['shell_executor']
+    elif module.params['http_executor']:
+        job_config['executor'] = 'http'
+        job_config['executor_config'] = module.params['http_executor']
+    else:
+        module.fail_json(msg="Module requires shell_executor or http_executor parameter specified.")
+
+    if module.params['run_on_create']:
+      params = { 'run_on_create': 'true' }
+
+    response = api.post(uri, success_response=201, params=params, data=job_config)
+
+    return response
+
+def delete_job(module, api):
+  pass
+
+def toggle_job(module, api):
+  pass
 
 if __name__ == '__main__':
-    main()
+
+    module_args = dkron_argument_spec()
+    module_args.update(
+        name=dict(type='str', required=True),
+        display_name=dict(type='str', required=False),
+        schedule=dict(type='str', required=False, default='@every 1m'),
+        timezone=dict(type='str', required=False, default='UTC'),
+        owner=dict(type='str', required=False),
+        owner_email=dict(type='str', required=False),
+        disabled=dict(type='bool', required=False, default=False),
+        tags=dict(type='dict', required=False),
+        metadata=dict(type='dict', required=False),
+        retries=dict(type='int', required=False, default=0),
+        parent_job=dict(type='str', required=False),
+        run_on_create=dict(type='bool', required=False, default=False),
+        file_processor=dict(type='dict', required=False),
+        log_processor=dict(type='dict', required=False),
+        syslog_processor=dict(type='dict', required=False),
+        concurrency=dict(type='bool', required=False, default=True),
+        shell_executor=dict(type='dict', required=False),
+        http_executor=dict(type='dict', required=False),
+        overwrite=dict(type='bool', required=False, default=True),
+        toggle=dict(type='bool', required=False, default=False),
+        state=dict(type='str', required=False, default='present', choices=['present', 'absent'])
+    )
+
+    result = dict(
+        changed=False,
+        failed=False,
+        ansible_module_results={}
+    )
+
+    module = AnsibleModule(
+        argument_spec=module_args,
+        supports_check_mode=False,
+        required_together=dkron_required_together()
+    )
+
+    api = DkronAPIInterface(module)
+
+    if module.params['state'] == 'present':
+        result['ansible_module_results'] = upsert_job(module, api)
+        result['changed'] = True
+    else:
+        result['ansible_module_results'] = api.delete_job()
+        result['changed']
+
+    module.exit_json(**result)
