@@ -5,7 +5,7 @@ import json
 
 __metaclass__ = type
 
-class DkronLookupException(Exception):
+class DkronRequestException(Exception):
 
 	def __init__(self, error_code=None):
 
@@ -58,7 +58,7 @@ class DkronAPIInterface(object):
 		response, info = fetch_url(self.module, query_url, headers=dict(self.headers), method='GET')
 
 		if info['status'] != success_response:
-			raise DkronLookupException(info['status'])
+			raise DkronRequestException(info['status'])
 
 		json_response = json.loads(response.read().decode('utf8'))
 
@@ -84,7 +84,7 @@ class DkronAPIInterface(object):
 			response, info = fetch_url(self.module, query_url, headers=dict(self.headers), method='POST')
 
 		if info['status'] != success_response:
-			raise DkronLookupException(info['status'])
+			raise DkronRequestException(info['status'])
 
 		json_response = json.loads(response.read().decode('utf8'))
 
@@ -94,8 +94,21 @@ class DkronAPIInterface(object):
 		return json_response
 
 	def delete(self, api_path, success_response=200, params=None, data=None):
-		response, info = fetch_url(self.module, api_url, headers=dict(self.headers), method='DELETE')
+		query_url = "{endpoint}{path}".format(endpoint=self.uri_root, path=api_path)
+		response, info = fetch_url(self.module, query_url, headers=dict(self.headers), method='DELETE')
 
+		if info['status'] == 404:
+			return {}
+
+		if info['status'] != success_response:
+			 raise DkronRequestException(info['status'])
+
+		if response:
+			json_response = json.loads(response.read().decode('utf8'))
+			return json_response
+		else:
+			return None
+		
 def dkron_argument_spec():
 	argument_spec = url_argument_spec()
 

@@ -81,7 +81,7 @@ ANSIBLE_METADATA = {
 }
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.knightsg.dkron.plugins.module_utils.base import DkronAPIInterface, DkronLookupException, DkronEmptyResponseException, dkron_argument_spec, dkron_required_together
+from ansible_collections.knightsg.dkron.plugins.module_utils.base import DkronAPIInterface, DkronRequestException, DkronEmptyResponseException, dkron_argument_spec, dkron_required_together
 from operator import itemgetter
 
 def get_job_config(module, api):
@@ -89,8 +89,10 @@ def get_job_config(module, api):
 
   try:
     response = api.get(uri)
-  except DkronLookupException as e:
+
+  except DkronRequestException as e:
     self.module.fail_json(msg="job config query failed ({err})".format(err=str(e)))
+
   except DkronEmptyResponseException as e:
     self.module.fail_json(msg="job config query failed ({err})".format(err=str(e)))
 
@@ -122,8 +124,9 @@ def get_job_history(module, api):
     else:
       history = sorted(response, key=itemgetter('started_at'), reverse=True)
 
-  except DkronLookupException as e:
+  except DkronRequestException as e:
     module.fail_json(msg="job execution history query failed ({err})".format(err=str(e)))
+    
   except DkronEmptyResponseException as e:
     module.fail_json(msg="job execution history query failed ({err})".format(err=str(e)))
 

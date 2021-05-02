@@ -26,10 +26,11 @@
       dkron_job:
         endpoint: "{{ query_host }}"
         name: mytestjob1
-        shell_executor:
-          command: '/bin/echo "Hello ${MY_FIRST_NAME} ${MY_LAST_NAME}!"'
-          env: 'MYNAME=John,MY_LAST_NAME=Smith'
-          cwd: '/tmp'
+        state: absent
+        # shell_executor:
+        #   command: '/bin/echo "Hello ${MY_FIRST_NAME} ${MY_LAST_NAME}!"'
+        #   env: 'MYNAME=John,MY_LAST_NAME=Smith'
+        #   cwd: '/tmp'
       register: task_output
 
     - name: display output

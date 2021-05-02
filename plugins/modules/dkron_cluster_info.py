@@ -18,7 +18,7 @@ options:
     type: str
     choices: [ all, status , leader , members , nodes , jobs ]
     default: all
-  busy_only:
+  running_only:
     description:
       - If set to true only currently executing jobs will be returned in a returned jobs list.
       - Has an effect only if a job list is returned, eg. type = 'all' or 'jobs'.
@@ -40,7 +40,7 @@ EXAMPLES = r'''
   knightsg.dkron.dkron_cluster_info:
     endpoint: 192.168.1.1
 
-- name: Get only cluster member list (from secured cluster)
+- name: Get only cluster member list (from SSL authenticated cluster)
   knightsg.dkron.dkron_cluster_info:
     endpoint: myclusterendpoint.com
     use_ssl: true
@@ -72,7 +72,7 @@ ANSIBLE_METADATA = {
 }
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.knightsg.dkron.plugins.module_utils.base import DkronAPIInterface, DkronLookupException, DkronEmptyResponseException, dkron_argument_spec, dkron_required_together
+from ansible_collections.knightsg.dkron.plugins.module_utils.base import DkronAPIInterface, DkronRequestException, DkronEmptyResponseException, dkron_argument_spec, dkron_required_together
 
 def cluster_status(module, api):
   uri = "/"
@@ -85,7 +85,7 @@ def cluster_status(module, api):
     else:
       status = {}
 
-  except DkronLookupException as e:
+  except DkronRequestException as e:
     module.fail_json(msg="cluster status query failed ({err})".format(err=str(e)))
 
   except DkronEmptyResponseException as e:
@@ -104,7 +104,7 @@ def leader_node(module, api):
     else:
       leader = None
 
-  except DkronLookupException as e:
+  except DkronRequestException as e:
     module.fail_json(msg="cluster leader query failed ({err})".format(err=str(e)))
 
   except DkronEmptyResponseException as e:
@@ -119,7 +119,7 @@ def member_nodes(module, api):
     response = api.get(uri)
     node_list = [member['Addr'] for member in response]
 
-  except DkronLookupException as e:
+  except DkronRequestException as e:
     module.fail_json(msg="cluster members query failed ({err})".format(err=str(e)))
 
   except DkronEmptyResponseException as e:
@@ -132,12 +132,12 @@ def job_list(module, api):
 
   try:
     response = api.get(uri)
-    if 'busy_only' in module.params and module.params['busy_only']:
+    if 'running_only' in module.params and module.params['running_only']:
       job_list = [job['name'] for job in response if job['name'] in running_jobs(module, api)]
     else:
       job_list = [job['name'] for job in response]
 
-  except DkronLookupException as e:
+  except DkronRequestException as e:
     module.fail_json(msg="cluster job list query failed ({err})".format(err=str(e)))
 
   except DkronEmptyResponseException as e:
@@ -152,7 +152,7 @@ def running_jobs(module, api):
     response = api.get(uri)
     job_list = [job['job_name'] for job in response]
 
-  except DkronLookupException as e:
+  except DkronRequestException as e:
     module.fail_json(msg="cluster status query failed ({err})".format(err=str(e)))
 
   except DkronEmptyResponseException as e:
@@ -164,7 +164,7 @@ if __name__ == '__main__':
     module_args = dkron_argument_spec()
     module_args.update(
         type=dict(type='str', choices=['all','status','leader','members','nodes','jobs'], default='all'),
-        busy_only=dict(type='bool', required=False, default=False)
+        running_only=dict(type='bool', required=False, default=False)
     )
 
     result = dict(
