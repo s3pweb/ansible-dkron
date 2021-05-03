@@ -72,7 +72,13 @@ ANSIBLE_METADATA = {
 }
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.knightsg.dkron.plugins.module_utils.base import DkronAPIInterface, DkronRequestException, DkronEmptyResponseException, dkron_argument_spec, dkron_required_together
+from ansible_collections.knightsg.dkron.plugins.module_utils.base import (
+    DkronAPIInterface,
+    DkronRequestException,
+    DkronEmptyResponseException,
+    dkron_argument_spec,
+    dkron_required_together
+)
 
 def cluster_status(module, api):
   uri = "/"
@@ -184,21 +190,21 @@ if __name__ == '__main__':
 
     if module.params['type'] in ['all', 'status']:
       data['status'] = cluster_status(module, api)
-      changed = True
+      result['changed'] = True
 
     if module.params['type'] in ['all', 'leader']:
       data['leader'] = leader_node(module, api)
-      changed = True
+      result['changed'] = True
 
     if module.params['type'] in ['all', 'members', 'nodes']:
       data['members'] = member_nodes(module, api)
-      changed = True
+      result['changed'] = True
 
     if module.params['type'] in ['all', 'jobs']:
       data['jobs'] = job_list(module, api)
-      changed = True
+      result['changed'] = True
 
-    if changed:
+    if result['changed']:
       result['ansible_module_results'] = data
 
     module.exit_json(**result)

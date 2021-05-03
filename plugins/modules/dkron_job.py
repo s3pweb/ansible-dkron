@@ -18,14 +18,13 @@ options:
       - Name of job to create.
     type: string
     required: true
-  display_name:
+  displayname:
     description:
-      - Alternate name of job to create.
+      - Alternate name of job that will be displayed.
     type: string 
   schedule:
     description:
       - Job schedule in 'Dkron' cron format (https://dkron.io/usage/cron-spec/).
-      - Defaults to '@every 1m'
     type: string
     required: false
   timezone:
@@ -251,7 +250,13 @@ ANSIBLE_METADATA = {
 }
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.knightsg.dkron.plugins.module_utils.base import DkronAPIInterface, DkronRequestException, DkronEmptyResponseException, dkron_argument_spec, dkron_required_together
+from ansible_collections.knightsg.dkron.plugins.module_utils.base import (
+    DkronAPIInterface,
+    DkronRequestException,
+    DkronEmptyResponseException,
+    dkron_argument_spec,
+    dkron_required_together
+)
 
 simple_options = [
   'name',
@@ -317,43 +322,55 @@ def upsert_job(module, api):
     if module.params['run_on_create']:
       params = { 'run_on_create': 'true' }
 
-    try:
-      response = api.post(uri, success_response=201, params=params, data=job_config)
+    if not module.check_mode:
+      try:
+        response = api.post(uri, success_response=201, params=params, data=job_config)
 
-    except DkronRequestException as e:
-      module.fail_json(msg="job create/update failed ({err})".format(err=str(e)))
+      except DkronRequestException as e:
+        module.fail_json(msg="job create/update failed ({err})".format(err=str(e)))
 
-    return response
+      return response, True
+
+    else:
+      return job_config, True
 
 def delete_job(module, api):
     uri = "/jobs/{name}".format(name=module.params['name'])
 
-    try:
-      response = api.delete(uri)
+    if not module.check_mode:
+      try:
+        response = api.delete(uri)
 
-    except DkronRequestException as e:
-      module.fail_json(msg="job deletion failed ({err})".format(err=str(e)))
+      except DkronRequestException as e:
+        module.fail_json(msg="job deletion failed ({err})".format(err=str(e)))
 
-    return response
+      return response, True
+
+    else:
+      return {}, True
 
 def toggle_job(module, api):
     uri = "/jobs/{name}/toggle".format(name=module.params['name'])
 
-    try:
-      response = api.post(uri)
+    if not module.check_mode:
+      try:
+        response = api.post(uri)
 
-    except DkronRequestException as e:
-      module.fail_json(msg="job toggle failed ({err})".format(err=str(e)))
+      except DkronRequestException as e:
+        module.fail_json(msg="job toggle failed ({err})".format(err=str(e)))
 
-    return response['disabled']
+      return { 'disabled': response['disabled'] }, True
+
+    else:
+      return {}, True
 
 if __name__ == '__main__':
 
     module_args = dkron_argument_spec()
     module_args.update(
         name=dict(type='str', required=True),
-        display_name=dict(type='str', required=False),
-        schedule=dict(type='str', required=False, default='@every 1m'),
+        displayname=dict(type='str', required=False),
+        schedule=dict(type='str', required=True),
         timezone=dict(type='str', required=False, default='UTC'),
         owner=dict(type='str', required=False),
         owner_email=dict(type='str', required=False),
@@ -382,7 +399,7 @@ if __name__ == '__main__':
 
     module = AnsibleModule(
         argument_spec=module_args,
-        supports_check_mode=False,
+        supports_check_mode=True,
         required_together=dkron_required_together()
     )
 
@@ -390,18 +407,17 @@ if __name__ == '__main__':
 
     if module.params['state'] == 'present':
         if module.params['toggle'] == False:
-          result['ansible_module_results'] = upsert_job(module, api)
-          result['changed'] = True
+          data, changed = upsert_job(module, api)
+          result['ansible_module_results'] = data
+          result['changed'] = changed
         else:
-          result['ansible_module_results'] = { 'disabled': toggle_job(module, api) }
-          result['changed'] = True
+          data, changed = toggle_job(module, api)
+          result['ansible_module_results'] = { 'disabled': data }
+          result['changed'] = changed
+
     else:
-        deletion_result = delete_job(module, api)
-
-        if deletion_result:
-          result['ansible_module_results'] = delete_job(module, api)
-
-        if result['ansible_module_results']:
-          result['changed'] = True
+        data, changed = delete_job(module, api)
+        result['ansible_module_results'] = data
+        result['changed'] = changed
 
     module.exit_json(**result)

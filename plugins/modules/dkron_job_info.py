@@ -81,7 +81,13 @@ ANSIBLE_METADATA = {
 }
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.knightsg.dkron.plugins.module_utils.base import DkronAPIInterface, DkronRequestException, DkronEmptyResponseException, dkron_argument_spec, dkron_required_together
+from ansible_collections.knightsg.dkron.plugins.module_utils.base import (
+    DkronAPIInterface,
+    DkronRequestException,
+    DkronEmptyResponseException,
+    dkron_argument_spec,
+    dkron_required_together
+)
 from operator import itemgetter
 
 def get_job_config(module, api):
@@ -101,13 +107,6 @@ def get_job_config(module, api):
   
   return response 
 
-
-###
-# Description: Query the job execution history.
-#
-# Return:
-#   - job executions list (limited list if specified)
-#   - empty list if response is empty
 def get_job_history(module, api):
   uri = "/jobs/{name}/executions".format(name=module.params['name'])
 
