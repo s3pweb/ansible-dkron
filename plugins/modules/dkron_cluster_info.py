@@ -15,8 +15,15 @@ options:
   type:
     description:
       - Which information to return.
+      - 'nodes' and 'members' are aliases for each other
     type: str
-    choices: [ all, status , leader , members , nodes , jobs ]
+    choices:
+      - all
+      - status
+      - leader
+      - members
+      - nodes
+      - jobs
     default: all
   running_only:
     description:
@@ -51,18 +58,27 @@ EXAMPLES = r'''
 '''
 
 RETURN = r'''
-configuration:
-  description: Job configuration as returned by the Dkron cluster API (https://dkron.io/api/).
-  returned: always
+status:
+  description: Cluster serf status.
+  returned: success, if 'all' or 'status' are specified for 'type'
   type: dict
-  sample: { "concurrency": "allow", "dependent_jobs": null, "disabled": false, "displayname": "", "error_count": 0, "executor": "shell", "executor_config": { "command": "/bin/true" }, "last_error": null, "last_success": "2020-11-14T17:32:15.010781048Z", "metadata": null, "name": "job", "next": "2020-11-14T17:33:15Z", "owner": "guy", "owner_email": "someone@example.com", "parent_job": "", "processors": {}, "retries": 0, "schedule": "@every 1m", "status": "success", "success_count": 185, "tags": { "server": "true:1" }, "timezone": ""}
+  sample: {}
   contains: see Dkron usage documentation for complete breakdown of returned values (https://dkron.io/usage/)
-history:
-  description: List of job executions with result status.
-  returned: always
-  type: dict
-  sample: { "attempt": 1, "finished_at": "2020-11-14T17:32:15.010781048Z", "group": 1605375135000263778, "job_name": "job", "node_name": "myhostname", "started_at": "2020-11-14T17:32:15.007570195Z", "success": true }
-  
+leader:
+  description: Cluster leader node.
+  returned: success, if 'all' or 'leader' are specified for 'type'
+  type: string
+  sample: '172.16.1.1'
+members:
+  description: Cluster member nodes.
+  returned: success, if 'all' or 'members' (or 'nodes') are specified for 'type'
+  type: list
+  sample: ['172.16.1.1', '172.16.1.2', '172.16.1.3']
+jobs:
+  description: Jobs configured in cluster.
+  returned: success, if 'all' or 'jobs'are specified for 'type'
+  type: list (of dicts)
+  sample: [{}, {}, {}]
 '''
 
 ANSIBLE_METADATA = {
@@ -138,8 +154,9 @@ def job_list(module, api):
 
   try:
     response = api.get(uri)
-    if 'running_only' in module.params and module.params['running_only']:
-      job_list = [job['name'] for job in response if job['name'] in running_jobs(module, api)]
+    if module.params['running_only']:
+      running = running_jobs(module, api)
+      job_list = [job['name'] for job in response if job['name'] in running]
     else:
       job_list = [job['name'] for job in response]
 
@@ -176,7 +193,7 @@ if __name__ == '__main__':
     result = dict(
         changed=False,
         failed=False,
-        ansible_module_results={}
+        cluster_info={}
     )
 
     module = AnsibleModule(
@@ -185,7 +202,7 @@ if __name__ == '__main__':
         required_together=dkron_required_together()
     )
 
-    data = {}
+    data = dict()
     api = DkronAPIInterface(module)
 
     if module.params['type'] in ['all', 'status']:
@@ -205,6 +222,6 @@ if __name__ == '__main__':
       result['changed'] = True
 
     if result['changed']:
-      result['ansible_module_results'] = data
+      result['cluster_info'] = data
 
     module.exit_json(**result)

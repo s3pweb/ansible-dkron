@@ -10,10 +10,10 @@
     
   tasks:
 
-    # - name: test cluster_info module
-    #   dkron_cluster_info:
-    #     endpoint: "{{ query_host }}"
-    #   register: task_output
+    - name: test cluster_info module
+      dkron_cluster_info:
+        endpoint: "{{ query_host }}"
+      register: task_output
 
     # - name: test job_info module
     #   dkron_job_info:
@@ -22,18 +22,18 @@
     #     limit_history: 1
     #   register: task_output
 
-    - name: test job module
-      dkron_job:
-        endpoint: "{{ query_host }}"
-        name: mytestjob3
-        displayname: 'My test job number 3'
-        schedule: '@every 5m'
-        state: absent
-        shell_executor:
-          command: '/bin/echo "Hello ${MY_FIRST_NAME} ${MY_LAST_NAME}!"'
-          env: 'MYNAME=John,MY_LAST_NAME=Smith'
-          cwd: '/tmp'
-      register: task_output
+    # - name: test job module
+    #   dkron_job:
+    #     endpoint: "{{ query_host }}"
+    #     name: mytestjob3
+    #     displayname: 'My test job number 3'
+    #     schedule: '@every 5m'
+    #     state: absent
+    #     shell_executor:
+    #       command: '/bin/echo "Hello ${MY_FIRST_NAME} ${MY_LAST_NAME}!"'
+    #       env: 'MYNAME=John,MY_LAST_NAME=Smith'
+    #       cwd: '/tmp'
+    #   register: task_output
 
     - name: display output
       debug:
