@@ -81,55 +81,15 @@ ANSIBLE_METADATA = {
 }
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.knightsg.dkron.plugins.module_utils.base import (
-    DkronAPIInterface,
+from ansible_collections.knightsg.dkron.plugins.module_utils.classes import (
+    DkronClusterInterface,
     DkronRequestException,
-    DkronEmptyResponseException,
+    DkronEmptyResponseException
+)
+from ansible_collections.knightsg.dkron.plugins.module_utils.support import (
     dkron_argument_spec,
     dkron_required_together
 )
-from operator import itemgetter
-
-def get_job_config(module, api):
-  uri = "/jobs/{name}".format(name=module.params['name'])
-
-  try:
-    response = api.get(uri)
-
-  except DkronRequestException as e:
-    self.module.fail_json(msg="job config query failed ({err})".format(err=str(e)))
-
-  except DkronEmptyResponseException as e:
-    self.module.fail_json(msg="job config query failed ({err})".format(err=str(e)))
-
-  if not response:
-    return False
-  
-  return response 
-
-def get_job_history(module, api):
-  uri = "/jobs/{name}/executions".format(name=module.params['name'])
-
-  response = api.get(uri)
-
-  try:
-    response = api.get(uri)
-
-    if not response:
-      return []
-
-    if module.params['limit_history'] != 0:
-      history = sorted(response, key=itemgetter('started_at'), reverse=True)[:module.params['limit_history']]
-    else:
-      history = sorted(response, key=itemgetter('started_at'), reverse=True)
-
-  except DkronRequestException as e:
-    module.fail_json(msg="job execution history query failed ({err})".format(err=str(e)))
-    
-  except DkronEmptyResponseException as e:
-    module.fail_json(msg="job execution history query failed ({err})".format(err=str(e)))
-
-  return history
 
 if __name__ == '__main__':
     module_args = dkron_argument_spec()
@@ -141,7 +101,7 @@ if __name__ == '__main__':
     result = dict(
         changed=False,
         failed=False,
-        ansible_module_results={}
+        jobs={}
     )
 
     module = AnsibleModule(
@@ -150,16 +110,25 @@ if __name__ == '__main__':
         required_together=dkron_required_together()
     )
 
-    data = {}
-    api = DkronAPIInterface(module)
+    jobs = []
+    api = DkronClusterInterface(module)
 
-    data['job_config'] = get_job_config(module, api)
-    data['history'] = get_job_history(module, api)
+    if module.params['names']:
+      for name in module.params['names']:
+        job_data = {}
+        job_data['job_config'] = api.get_job_config(name)
+        job_data['history'] = api.get_job_history(name)
+        jobs.append(job_data)
 
-    if data['job_config'] == False:
-      result['failed'] = True
     else:
-      result['ansible_module_results'] = data
-      result['changed'] = True
+      job_list = api.job_list()
+      for job_name in job_list:
+        job_data = {}
+        job_data['job_config'] = api.get_job_config(job_name)
+        job_data['history'] = api.get_job_history(job_name)
+        jobs.append(job_data)
+
+    result['jobs'] = jobs
+    result['changed'] = True
     
     module.exit_json(**result)

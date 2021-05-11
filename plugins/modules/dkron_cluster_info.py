@@ -58,27 +58,28 @@ EXAMPLES = r'''
 '''
 
 RETURN = r'''
-status:
-  description: Cluster serf status.
-  returned: success, if 'all' or 'status' are specified for 'type'
-  type: dict
-  sample: {}
-  contains: see Dkron usage documentation for complete breakdown of returned values (https://dkron.io/usage/)
-leader:
-  description: Cluster leader node.
-  returned: success, if 'all' or 'leader' are specified for 'type'
-  type: string
-  sample: '172.16.1.1'
-members:
-  description: Cluster member nodes.
-  returned: success, if 'all' or 'members' (or 'nodes') are specified for 'type'
-  type: list
-  sample: ['172.16.1.1', '172.16.1.2', '172.16.1.3']
-jobs:
-  description: Jobs configured in cluster.
-  returned: success, if 'all' or 'jobs'are specified for 'type'
-  type: list (of dicts)
-  sample: [{}, {}, {}]
+cluster_info:
+  status:
+    description: Cluster serf status.
+    returned: success, if 'all' or 'status' are specified for 'type'
+    type: dict
+    sample: {}
+    contains: see Dkron usage documentation for complete breakdown of returned values (https://dkron.io/usage/)
+  leader:
+    description: Cluster leader node.
+    returned: success, if 'all' or 'leader' are specified for 'type'
+    type: string
+    sample: '172.16.1.1'
+  members:
+    description: Cluster member nodes.
+    returned: success, if 'all' or 'members' (or 'nodes') are specified for 'type'
+    type: list
+    sample: ['172.16.1.1', '172.16.1.2', '172.16.1.3']
+  jobs:
+    description: Jobs configured in cluster.
+    returned: success, if 'all' or 'jobs'are specified for 'type'
+    type: list (of dicts)
+    sample: [{}, {}, {}]
 '''
 
 ANSIBLE_METADATA = {
@@ -88,100 +89,15 @@ ANSIBLE_METADATA = {
 }
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.knightsg.dkron.plugins.module_utils.base import (
-    DkronAPIInterface,
+from ansible_collections.knightsg.dkron.plugins.module_utils.classes import (
+    DkronClusterInterface,
     DkronRequestException,
-    DkronEmptyResponseException,
+    DkronEmptyResponseException
+)
+from ansible_collections.knightsg.dkron.plugins.module_utils.support import (
     dkron_argument_spec,
     dkron_required_together
 )
-
-def cluster_status(module, api):
-  uri = "/"
-
-  try:
-    response = api.get(uri)
-
-    if 'serf' in response:
-      status = response['serf']
-    else:
-      status = {}
-
-  except DkronRequestException as e:
-    module.fail_json(msg="cluster status query failed ({err})".format(err=str(e)))
-
-  except DkronEmptyResponseException as e:
-    module.fail_json(msg="cluster status query failed ({err})".format(err=str(e)))
-
-  return status
-
-def leader_node(module, api):
-  uri = "/leader"
-
-  try:
-    response = api.get(uri)
-
-    if response:
-      leader = response['Addr']
-    else:
-      leader = None
-
-  except DkronRequestException as e:
-    module.fail_json(msg="cluster leader query failed ({err})".format(err=str(e)))
-
-  except DkronEmptyResponseException as e:
-    module.fail_json(msg="cluster leader query failed ({err})".format(err=str(e)))
-
-  return leader
-
-def member_nodes(module, api):
-  uri = "/members"
-
-  try:
-    response = api.get(uri)
-    node_list = [member['Addr'] for member in response]
-
-  except DkronRequestException as e:
-    module.fail_json(msg="cluster members query failed ({err})".format(err=str(e)))
-
-  except DkronEmptyResponseException as e:
-    return []
-
-  return node_list
-
-def job_list(module, api):
-  uri = "/jobs"
-
-  try:
-    response = api.get(uri)
-    if module.params['running_only']:
-      running = running_jobs(module, api)
-      job_list = [job['name'] for job in response if job['name'] in running]
-    else:
-      job_list = [job['name'] for job in response]
-
-  except DkronRequestException as e:
-    module.fail_json(msg="cluster job list query failed ({err})".format(err=str(e)))
-
-  except DkronEmptyResponseException as e:
-    return []
-
-  return job_list
-
-def running_jobs(module, api):
-  uri = "/busy"
-
-  try:
-    response = api.get(uri)
-    job_list = [job['job_name'] for job in response]
-
-  except DkronRequestException as e:
-    module.fail_json(msg="cluster status query failed ({err})".format(err=str(e)))
-
-  except DkronEmptyResponseException as e:
-    return []
-
-  return job_list
 
 if __name__ == '__main__':
     module_args = dkron_argument_spec()
@@ -203,22 +119,22 @@ if __name__ == '__main__':
     )
 
     data = dict()
-    api = DkronAPIInterface(module)
+    api = DkronClusterInterface(module)
 
     if module.params['type'] in ['all', 'status']:
-      data['status'] = cluster_status(module, api)
+      data['status'] = api.cluster_status()
       result['changed'] = True
 
     if module.params['type'] in ['all', 'leader']:
-      data['leader'] = leader_node(module, api)
+      data['leader'] = api.leader_node()
       result['changed'] = True
 
     if module.params['type'] in ['all', 'members', 'nodes']:
-      data['members'] = member_nodes(module, api)
+      data['members'] = api.member_nodes()
       result['changed'] = True
 
     if module.params['type'] in ['all', 'jobs']:
-      data['jobs'] = job_list(module, api)
+      data['jobs'] = api.job_list()
       result['changed'] = True
 
     if result['changed']:
