@@ -47,213 +47,216 @@ class DkronClusterInterface(object):
 			self.module.fail_json(failed=True, msg="Cluster endpoint is required")
 
 	def cluster_status(self):
-	  uri = "/"
+		uri = "/"
 
-	  try:
-	    response = self.get(uri)
+		try:
+			response = self.get(uri)
 
-	    if 'serf' in response:
-	      status = response['serf']
-	    else:
-	      status = {}
+			if 'serf' in response:
+			  status = response['serf']
+			else:
+			  status = {}
 
-	  except DkronRequestException as e:
-	    self.module.fail_json(msg="cluster status query failed ({err})".format(err=str(e)))
+			return status
 
-	  except DkronEmptyResponseException as e:
-	    self.module.fail_json(msg="cluster status query failed ({err})".format(err=str(e)))
+		except DkronRequestException as e:
+			self.module.fail_json(msg="cluster status query failed ({err})".format(err=str(e)))
 
-	  return status
+		except DkronEmptyResponseException as e:
+			self.module.fail_json(msg="cluster status query failed ({err})".format(err=str(e)))
 
 	def leader_node(self):
-	  uri = "/leader"
+		uri = "/leader"
 
-	  try:
-	    response = self.get(uri)
+		try:
+			response = self.get(uri)
 
-	    if response:
-	      leader = response['Addr']
-	    else:
-	      leader = None
+			if response:
+				leader = response['Addr']
+			else:
+				leader = None
 
-	  except DkronRequestException as e:
-	    self.module.fail_json(msg="cluster leader query failed ({err})".format(err=str(e)))
+			return leader
 
-	  except DkronEmptyResponseException as e:
-	    self.module.fail_json(msg="cluster leader query failed ({err})".format(err=str(e)))
+		except DkronRequestException as e:
+			self.module.fail_json(msg="cluster leader query failed ({err})".format(err=str(e)))
 
-	  return leader
+		except DkronEmptyResponseException as e:
+			self.module.fail_json(msg="cluster leader query failed ({err})".format(err=str(e)))
 
 	def member_nodes(self):
-	  uri = "/members"
+		uri = "/members"
 
-	  try:
-	    response = self.get(uri)
-	    node_list = [member['Addr'] for member in response]
+		try:
+			response = self.get(uri)
+			node_list = [member['Addr'] for member in response]
 
-	  except DkronRequestException as e:
-	    self.module.fail_json(msg="cluster members query failed ({err})".format(err=str(e)))
+			return node_list
 
-	  except DkronEmptyResponseException as e:
-	    return []
+		except DkronRequestException as e:
+			self.module.fail_json(msg="cluster members query failed ({err})".format(err=str(e)))
 
-	  return node_list
+		except DkronEmptyResponseException as e:
+			return []
 
 	def job_list(self):
-	  uri = "/jobs"
+		uri = "/jobs"
 
-	  try:
-	    response = self.get(uri)
+		try:
+			response = self.get(uri)
 
-	    if 'running_only' in self.module.params and self.module.params['running_only']:
-	      running = self.running_jobs()
-	      job_list = [job['name'] for job in response if job['name'] in running]
-	    else:
-	      job_list = [job['name'] for job in response]
+			if 'running_only' in self.module.params and self.module.params['running_only']:
+				running = self.running_jobs()
+				job_list = [job['name'] for job in response if job['name'] in running]
+			else:
+				job_list = [job['name'] for job in response]
 
-	  except DkronRequestException as e:
-	    self.module.fail_json(msg="cluster job list query failed ({err})".format(err=str(e)))
+			return job_list
 
-	  except DkronEmptyResponseException as e:
-	    return []
+		except DkronRequestException as e:
+			self.module.fail_json(msg="cluster job list query failed ({err})".format(err=str(e)))
 
-	  return job_list
+		except DkronEmptyResponseException as e:
+			return []
 
 	def running_jobs(self):
-	  uri = "/busy"
+		uri = "/busy"
 
-	  try:
-	    response = self.get(uri)
-	    job_list = [job['job_name'] for job in response]
+		try:
+			response = self.get(uri)
+			job_list = [job['job_name'] for job in response]
 
-	  except DkronRequestException as e:
-	    self.module.fail_json(msg="cluster status query failed ({err})".format(err=str(e)))
+			return job_list
 
-	  except DkronEmptyResponseException as e:
-	    return []
+		except DkronRequestException as e:
+			self.module.fail_json(msg="cluster status query failed ({err})".format(err=str(e)))
 
-	  return job_list
+		except DkronEmptyResponseException as e:
+			return []
 
 	def get_job_config(self, job_name=None):
-	  if job_name:
-	    uri = "/jobs/{name}".format(name=job_name)
-	  else:
-	    return False
+		if job_name:
+			uri = "/jobs/{name}".format(name=job_name)
+		else:
+			return False
 
-	  try:
-	    response = self.get(uri)
+		try:
+			response = self.get(uri)
 
-	  except DkronRequestException as e:
-	    self.module.fail_json(msg="job config query failed ({err})".format(err=str(e)))
+			if not response:
+				return False
 
-	  except DkronEmptyResponseException as e:
-	    self.module.fail_json(msg="job config query failed ({err})".format(err=str(e)))
+			return response 
 
-	  if not response:
-	    return False
-	  
-	  return response 
+		except DkronRequestException as e:
+			self.module.fail_json(msg="job config query failed ({err})".format(err=str(e)))
+
+		except DkronEmptyResponseException as e:
+			self.module.fail_json(msg="job config query failed ({err})".format(err=str(e)))
 
 	def get_job_history(self, job_name=None):
-	  if job_name:
-	    uri = "/jobs/{name}/executions".format(name=job_name)
-	  else:
-	    return False
+		if job_name:
+			uri = "/jobs/{name}/executions".format(name=job_name)
+		else:
+			return False
 
-	  try:
-	    response = self.get(uri)
+		try:
+			response = self.get(uri)
 
-	    if not response:
-	      return []
+			if not response:
+			  return []
 
-	    if self.module.params['limit_history'] != 0:
-	      history = sorted(response, key=itemgetter('started_at'), reverse=True)[:self.module.params['limit_history']]
-	    else:
-	      history = sorted(response, key=itemgetter('started_at'), reverse=True)
+			if self.module.params['limit_history'] != 0:
+				history = sorted(response, key=itemgetter('started_at'), reverse=True)[:self.module.params['limit_history']]
+			else:
+				history = sorted(response, key=itemgetter('started_at'), reverse=True)
 
-	  except DkronRequestException as e:
-	    self.module.fail_json(msg="job execution history query failed ({err})".format(err=str(e)))
-	    
-	  except DkronEmptyResponseException as e:
-	    self.module.fail_json(msg="job execution history query failed ({err})".format(err=str(e)))
+			return history
 
-	  return history
+		except DkronRequestException as e:
+			self.module.fail_json(msg="job execution history query failed ({err})".format(err=str(e)))
+
+		except DkronEmptyResponseException as e:
+			self.module.fail_json(msg="job execution history query failed ({err})".format(err=str(e)))
 
 	def upsert_job(self):
 
-	    uri = "/jobs"
+		uri = "/jobs"
 
-	    simple_options = [
-		  'name',
-		  'displayname',
-		  'schedule',
-		  'timezone',
-		  'owner',
-		  'owner_email',
-		  'disabled',
-		  'tags',
-		  'metadata',
-		  'retries',
-		  'parent_job',
-		  'run_on_create',
-		  'concurrency',
-		  'overwrite',
-		  'limit_history',
-		  'toggle',
-		  'state'
+		simple_options = [
+			'name',
+			'displayname',
+			'schedule',
+			'timezone',
+			'owner',
+			'owner_email',
+			'disabled',
+			'tags',
+			'metadata',
+			'retries',
+			'parent_job',
+			'run_on_create',
+			'concurrency',
+			'overwrite',
+			'limit_history',
+			'toggle',
+			'state'
 		]
-	    params = None
+		params = None
 
-	    job_config = {
-	        'name': self.module.params['name']
-	    }
+		job_config = {
+			'name': self.module.params['name']
+		}
 
-	    # Add basic parameters directly to job config
-	    for param in self.module.params:
-	      if self.module.params[param] and param in simple_options:
-	        job_config[param] = self.module.params[param]
+		# Add basic parameters directly to job config
+		for param in self.module.params:
+			if self.module.params[param] and param in simple_options:
+				job_config[param] = self.module.params[param]
 
 	    # Construct complex parameters and add to job config
-	    if self.module.params['concurrency']:
-	        job_config['concurrency'] = 'allow'
-	    else:
-	        job_config['concurrency'] = 'forbid'
+		if self.module.params['concurrency']:
+			job_config['concurrency'] = 'allow'
+		else:
+			job_config['concurrency'] = 'forbid'
 
-	    if self.module.params['file_processor'] or self.module.params['log_processor'] or self.module.params['syslog_processor']:
-	        job_config['processors'] = {}
+		if self.module.params['file_processor'] or self.module.params['log_processor'] or self.module.params['syslog_processor']:
+			job_config['processors'] = {}
 
-	        if self.module.params['file_processor']:
-	          job_config['processors']['files'] = self.module.params['file_processor']
+			if self.module.params['file_processor']:
+				job_config['processors']['files'] = self.module.params['file_processor']
 
-	        if self.module.params['log_processor']:
-	          job_config['processors']['log'] = self.module.params['log_processor']
+			if self.module.params['log_processor']:
+				job_config['processors']['log'] = self.module.params['log_processor']
 
-	        if self.module.params['syslog_processor']:
-	          job_config['processors']['syslog'] = self.module.params['syslog_processor']
+			if self.module.params['syslog_processor']:
+				job_config['processors']['syslog'] = self.module.params['syslog_processor']
 
-	    if self.module.params['shell_executor']:
-	        job_config['executor'] = 'shell'
-	        job_config['executor_config'] = self.module.params['shell_executor']
-	    elif self.module.params['http_executor']:
-	        job_config['executor'] = 'http'
-	        job_config['executor_config'] = self.module.params['http_executor']
-	    else:
-	        self.module.fail_json(msg="Module requires shell_executor or http_executor parameter specified.")
+		if self.module.params['shell_executor']:
+			job_config['executor'] = 'shell'
+			job_config['executor_config'] = self.module.params['shell_executor']
+		elif self.module.params['http_executor']:
+			job_config['executor'] = 'http'
+			job_config['executor_config'] = self.module.params['http_executor']
+		else:
+			self.module.fail_json(msg="Module requires shell_executor or http_executor parameter specified.")
 
-	    if self.module.params['run_on_create']:
-	      params = { 'run_on_create': 'true' }
+		if self.module.params['run_on_create']:
+			params = { 'run_on_create': 'true' }
 
-	    if not self.module.check_mode:
-	      try:
-	        response = self.post(uri, success_response=201, params=params, data=job_config)
+		if not self.module.check_mode:
+			try:
+				response = self.post(uri, success_response=201, params=params, data=job_config)
+				
+				return response, True
 
-	      except DkronRequestException as e:
-	        self.module.fail_json(msg="job create/update failed ({err})".format(err=str(e)))
+			except DkronRequestException as e:
+				self.module.fail_json(msg="job create/update failed ({err})".format(err=str(e)))
 
-	      return response, True
+			except Exception as e:
+				self.module.fail_json(msg="unknown error ({err})".format(err=str(e)))
 
-	    else:
-	      return job_config, True
+		else:
+			return {}, True
 
 	def delete_job(self, job_name=None):
 		if job_name:
@@ -270,17 +273,11 @@ class DkronClusterInterface(object):
 			except DkronRequestException as e:
 				self.module.fail_json(msg="job deletion failed ({err})".format(err=str(e)))
 
+			except Exception as e:
+				self.module.fail_json(msg="unknown error ({err})".format(err=str(e)))
+
 		else:
-			try:
-				response = self.job_list()
-
-				if job_name in response:
-					return {}, True
-				else:
-					return {}, False
-
-			except DkronRequestException as e:
-				self.module.fail_json(msg="job list lookup failed ({err})".format(err=str(e)))
+			return {}, True
 
 	def toggle_job(self, job_name=None):
 		if job_name:
@@ -297,14 +294,11 @@ class DkronClusterInterface(object):
 			except DkronRequestException as e:
 				self.module.fail_json(msg="job toggle failed ({err})".format(err=str(e)))
 
+			except Exception as e:
+				self.module.fail_json(msg="unknown error ({err})".format(err=str(e)))
+
 		else:
-			try:
-				response = self.get_job_config(job_name=job_name)
-
-				return {}, True
-
-			except DkronRequestException as e:
-				self.module.fail_json(msg="job config lookup failed ({err})".format(err=str(e)))
+			return {}, True
 
 	def get(self, api_path, success_response=200, params=None):
 		query_url = "{endpoint}{path}".format(endpoint=self.uri_root, path=api_path)
