@@ -154,6 +154,10 @@ class DkronClusterInterface(object):
 		except DkronEmptyResponseException as e:
 			self.module.fail_json(msg="job config query failed ({err})".format(err=str(e)))
 
+	def compare_job_configs(self):
+		# Use self.get_job_config to compare new config with one in cluster
+		pass
+
 	def get_job_history(self, job_name=None):
 		if job_name:
 			uri = "/jobs/{name}/executions".format(name=job_name)

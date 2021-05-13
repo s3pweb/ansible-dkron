@@ -102,7 +102,7 @@ from ansible_collections.knightsg.dkron.plugins.module_utils.support import (
 if __name__ == '__main__':
     module_args = dkron_argument_spec()
     module_args.update(
-        type=dict(type='str', choices=['all','status','leader','members','nodes','jobs'], default='all'),
+        type=dict(type='str', choices=['all', 'status', 'leader', 'members', 'nodes', 'jobs'], default='all'),
         running_only=dict(type='bool', required=False, default=False)
     )
 
@@ -122,22 +122,22 @@ if __name__ == '__main__':
     api = DkronClusterInterface(module)
 
     if module.params['type'] in ['all', 'status']:
-      data['status'] = api.cluster_status()
-      result['changed'] = True
+        data['status'] = api.cluster_status()
+        result['changed'] = True
 
     if module.params['type'] in ['all', 'leader']:
-      data['leader'] = api.leader_node()
-      result['changed'] = True
+        data['leader'] = api.leader_node()
+        result['changed'] = True
 
     if module.params['type'] in ['all', 'members', 'nodes']:
-      data['members'] = api.member_nodes()
-      result['changed'] = True
+        data['members'] = api.member_nodes()
+        result['changed'] = True
 
     if module.params['type'] in ['all', 'jobs']:
-      data['jobs'] = api.job_list()
-      result['changed'] = True
+        data['jobs'] = api.job_list()
+        result['changed'] = True
 
     if result['changed']:
-      result['cluster_info'] = data
+        result['cluster_info'] = data
 
     module.exit_json(**result)

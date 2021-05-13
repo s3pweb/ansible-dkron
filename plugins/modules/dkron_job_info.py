@@ -64,14 +64,44 @@ configuration:
   description: Job configuration as returned by the Dkron cluster API (https://dkron.io/api/).
   returned: always
   type: dict
-  sample: { "concurrency": "allow", "dependent_jobs": null, "disabled": false, "displayname": "", "error_count": 0, "executor": "shell", "executor_config": { "command": "/bin/true" }, "last_error": null, "last_success": "2020-11-14T17:32:15.010781048Z", "metadata": null, "name": "job", "next": "2020-11-14T17:33:15Z", "owner": "guy", "owner_email": "someone@example.com", "parent_job": "", "processors": {}, "retries": 0, "schedule": "@every 1m", "status": "success", "success_count": 185, "tags": { "server": "true:1" }, "timezone": ""}
+  sample:
+    concurrency: "allow"
+    dependent_jobs: null
+    disabled: false
+    displayname: ""
+    error_count: 0
+    executor: "shell"
+    executor_config:
+      command: "/bin/true"
+    last_error: null
+    last_success: "2020-11-14T17:32:15.010781048Z"
+    metadata: null
+    name: "job"
+    next: "2020-11-14T17:33:15Z"
+    owner: "john smith"
+    owner_email: "johnsmith@example.com"
+    parent_job: ""
+    processors: {}
+    retries: 0
+    schedule: "@every 1m"
+    status: "success"
+    success_count: 185
+    tags:
+      server: "true:1"
+    timezone: "UTC"
   contains: see Dkron usage documentation for complete breakdown of returned values (https://dkron.io/usage/)
 history:
   description: List of job executions with result status.
   returned: always
   type: dict
-  sample: { "attempt": 1, "finished_at": "2020-11-14T17:32:15.010781048Z", "group": 1605375135000263778, "job_name": "job", "node_name": "myhostname", "started_at": "2020-11-14T17:32:15.007570195Z", "success": true }
-  
+  sample:
+    attempt: 1
+    finished_at: "2020-11-14T17:32:15.010781048Z"
+    group: 1605375135000263778
+    job_name: "job"
+    node_name: "myhostname"
+    started_at: "2020-11-14T17:32:15.007570195Z"
+    success: True
 '''
 
 ANSIBLE_METADATA = {
@@ -94,8 +124,8 @@ from ansible_collections.knightsg.dkron.plugins.module_utils.support import (
 if __name__ == '__main__':
     module_args = dkron_argument_spec()
     module_args.update(
-      names=dict(type='list', required=False, aliases=['name']),
-      limit_history=dict(type='int', required=False, default=0)
+        names=dict(type='list', required=False, aliases=['name']),
+        limit_history=dict(type='int', required=False, default=0)
     )
 
     result = dict(
@@ -114,21 +144,20 @@ if __name__ == '__main__':
     api = DkronClusterInterface(module)
 
     if module.params['names']:
-      for name in module.params['names']:
-        job_data = {}
-        job_data['job_config'] = api.get_job_config(name)
-        job_data['history'] = api.get_job_history(name)
-        jobs.append(job_data)
+        for name in module.params['names']:
+            job_data = {}
+            job_data['job_config'] = api.get_job_config(name)
+            job_data['history'] = api.get_job_history(name)
+            jobs.append(job_data)
 
     else:
-      job_list = api.job_list()
-      for job_name in job_list:
-        job_data = {}
-        job_data['job_config'] = api.get_job_config(job_name)
-        job_data['history'] = api.get_job_history(job_name)
-        jobs.append(job_data)
+        job_list = api.job_list()
+        for job_name in job_list:
+            job_data = {}
+            job_data['job_config'] = api.get_job_config(job_name)
+            job_data['history'] = api.get_job_history(job_name)
+            jobs.append(job_data)
 
     result['jobs'] = jobs
     result['changed'] = True
-    
     module.exit_json(**result)

@@ -21,7 +21,7 @@ options:
   displayname:
     description:
       - Alternate name of job that will be displayed.
-    type: string 
+    type: string
   schedule:
     description:
       - Job schedule in 'Dkron' cron format (https://dkron.io/usage/cron-spec/).
@@ -175,7 +175,7 @@ options:
       tls_key:
         description:
           - Path to PEM file containing the client cert private key (if cert required).
-        type: string     
+        type: string
       tls_ca:
         description:
           - Path to PEM file containing certs to use as root CAs (if cert required)
@@ -183,7 +183,7 @@ options:
   overwrite:
     description:
       - Overwrite the job configuration if it already exists.
-      - If this is set to true, a job of the same name exists and the job configuration you pass is the same as the existing configuration, this module will still report the job status as changed.
+      - Will still report the job status as changed even if existing config matches new config.
     type: bool
     default: true
   toggle:
@@ -235,7 +235,7 @@ configuration:
   returned: always
   type: complex
   contains: see Dkron usage documentation for complete breakdown of returned values (https://dkron.io/usage/)
-  sample: { 
+  sample: {
     "name": "mytestjob1",
     "displayname": "my_alt_job_name_1",
     "schedule": "0 */10 * * * *",
@@ -303,14 +303,24 @@ if __name__ == '__main__':
     api = DkronClusterInterface(module)
 
     if module.params['state'] == 'present':
-        if module.params['toggle'] == False:
-          data, changed = api.upsert_job()
-          result['ansible_module_results'] = data
-          result['changed'] = changed
+        if not module.params['toggle']:
+            if module.params['overwrite']:
+                data, changed = api.upsert_job()
+                result['ansible_module_results'] = data
+                result['changed'] = changed
+            else:
+                existing_jobs = api.job_list()
+                if module.params['name'] not in existing_jobs:
+                    data, changed = api.upsert_job()
+                    result['ansible_module_results'] = data
+                    result['changed'] = changed
+                else:
+                    result['ansible_module_results'] = {}
+                    result['changed'] = False
         else:
-          data, changed = api.toggle_job(job_name=module.params['name'])
-          result['ansible_module_results'] = { 'disabled': data }
-          result['changed'] = changed
+            data, changed = api.toggle_job(job_name=module.params['name'])
+            result['ansible_module_results'] = {'disabled': data}
+            result['changed'] = changed
 
     else:
         data, changed = api.delete_job()
