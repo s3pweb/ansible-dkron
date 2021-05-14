@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from __future__ import (absolute_import, division, print_function)
 
@@ -15,7 +16,7 @@ options:
   type:
     description:
       - Which information to return.
-      - 'nodes' and 'members' are aliases for each other
+      - 'nodes' and 'members' are aliases.
     type: str
     choices:
       - all
@@ -25,10 +26,10 @@ options:
       - nodes
       - jobs
     default: all
-  running_only:
+  active_only:
     description:
-      - If set to true only currently executing jobs will be returned in a returned jobs list.
-      - Has an effect only if a job list is returned, eg. type = 'all' or 'jobs'.
+      - If set to true only currently executing jobs will be returned.
+      - Has an effect only if type = 'jobs' (or 'all').
     type: bool
     default: False
 extends_documentation_fragment:
@@ -58,6 +59,7 @@ EXAMPLES = r'''
 '''
 
 RETURN = r'''
+---
 cluster_info:
   status:
     description: Cluster serf status.
@@ -103,7 +105,7 @@ if __name__ == '__main__':
     module_args = dkron_argument_spec()
     module_args.update(
         type=dict(type='str', choices=['all', 'status', 'leader', 'members', 'nodes', 'jobs'], default='all'),
-        running_only=dict(type='bool', required=False, default=False)
+        active_only=dict(type='bool', required=False, default=False)
     )
 
     result = dict(
@@ -118,7 +120,7 @@ if __name__ == '__main__':
         required_together=dkron_required_together()
     )
 
-    data = dict()
+    data = {}
     api = DkronClusterInterface(module)
 
     if module.params['type'] in ['all', 'status']:

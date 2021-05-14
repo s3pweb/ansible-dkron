@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
@@ -9,13 +10,13 @@ __metaclass__ = type
 DOCUMENTATION = r'''
 ---
 module: dkron_job
-short_description: Create a Dkron job
+short_description: Manage a Dkron job
 description:
-- Create a Dkron job.
+- Create, update or delete a Dkron job.
 options:
   name:
     description:
-      - Name of job to create.
+      - Name of job to create, update or delete.
     type: string
     required: true
   displayname:
@@ -26,7 +27,6 @@ options:
     description:
       - Job schedule in 'Dkron' cron format (https://dkron.io/usage/cron-spec/).
     type: string
-    required: false
     default: '@every 1m'
   timezone:
     description:
@@ -230,9 +230,10 @@ EXAMPLES = r'''
 '''
 
 RETURN = r'''
+---
 configuration:
   description: Copy of job configuration (for reference).
-  returned: always
+  returned: when job is created or updated
   type: complex
   contains: see Dkron usage documentation for complete breakdown of returned values (https://dkron.io/usage/)
   sample: {

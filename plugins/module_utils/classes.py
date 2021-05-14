@@ -108,9 +108,9 @@ class DkronClusterInterface(object):
         try:
             response = self.get(uri)
 
-            if 'running_only' in self.module.params and self.module.params['running_only']:
-                running = self.running_jobs()
-                job_list = [job['name'] for job in response if job['name'] in running]
+            if 'active_only' in self.module.params and self.module.params['active_only']:
+                active_jobs = self.active_jobs()
+                job_list = [job['name'] for job in response if job['name'] in active_jobs]
             else:
                 job_list = [job['name'] for job in response]
 
@@ -122,7 +122,7 @@ class DkronClusterInterface(object):
         except DkronEmptyResponseException as e:
             return []
 
-    def running_jobs(self):
+    def active_jobs(self):
         uri = "/busy"
 
         try:
