@@ -10,10 +10,10 @@
     
   tasks:
 
-    # - name: test cluster_info module
-    #   dkron_cluster_info:
-    #     endpoint: "{{ query_host }}"
-    #   register: task_output
+    - name: test cluster_info module
+      dkron_cluster_info:
+        endpoint: "{{ query_host }}"
+      register: task_output
 
     # - name: test job_info module
     #   dkron_job_info:
@@ -21,13 +21,13 @@
     #     limit_history: 1
     #   register: task_output
 
-    - name: test job module
-      dkron_job:
-        endpoint: "{{ query_host }}"
-        name: mytestjob3
-        toggle: yes
-        state: present
-      register: task_output
+    # - name: test job module
+    #   dkron_job:
+    #     endpoint: "{{ query_host }}"
+    #     name: mytestjob3
+    #     toggle: yes
+    #     state: present
+    #   register: task_output
 
     - name: display output
       debug:

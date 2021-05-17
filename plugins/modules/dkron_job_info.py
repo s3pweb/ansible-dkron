@@ -144,17 +144,12 @@ from ansible_collections.knightsg.dkron.plugins.module_utils.support import (
     dkron_required_together
 )
 
-if __name__ == '__main__':
+
+def init_module():
     module_args = dkron_argument_spec()
     module_args.update(
         names=dict(type='list', required=False, aliases=['name']),
         limit_history=dict(type='int', required=False, default=0)
-    )
-
-    result = dict(
-        changed=False,
-        failed=False,
-        jobs={}
     )
 
     module = AnsibleModule(
@@ -163,6 +158,17 @@ if __name__ == '__main__':
         required_together=dkron_required_together()
     )
 
+    return module
+
+
+def main():
+    module = init_module()
+    result = dict(
+        changed=False,
+        failed=False,
+        jobs={}
+    )
+    
     jobs = []
     api = DkronClusterInterface(module)
 
@@ -184,3 +190,7 @@ if __name__ == '__main__':
     result['jobs'] = jobs
     result['changed'] = True
     module.exit_json(**result)
+
+
+if __name__ == '__main__':
+    main()

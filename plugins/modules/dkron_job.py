@@ -262,8 +262,8 @@ from ansible_collections.knightsg.dkron.plugins.module_utils.support import (
     dkron_required_together
 )
 
-if __name__ == '__main__':
 
+def init_module():
     module_args = dkron_argument_spec()
     module_args.update(
         name=dict(type='str', required=True),
@@ -289,18 +289,23 @@ if __name__ == '__main__':
         state=dict(type='str', required=False, default='present', choices=['present', 'absent'])
     )
 
-    result = dict(
-        changed=False,
-        failed=False,
-        ansible_module_results={}
-    )
-
     module = AnsibleModule(
         argument_spec=module_args,
         supports_check_mode=True,
         required_together=dkron_required_together()
     )
 
+    return module
+
+
+def main():
+    module = init_module()
+    result = dict(
+        changed=False,
+        failed=False,
+        ansible_module_results={}
+    )
+    
     api = DkronClusterInterface(module)
 
     if module.params['state'] == 'present':
@@ -329,3 +334,7 @@ if __name__ == '__main__':
         result['changed'] = changed
 
     module.exit_json(**result)
+
+
+if __name__ == '__main__':
+    main()
