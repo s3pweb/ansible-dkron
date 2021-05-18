@@ -65,11 +65,25 @@ class DkronClusterInfoTest(TestCase):
 		mock_fetch_url.return_value = cluster_query_status_response_success()
 
 		dkron_iface = DkronClusterInterface(module)
-		with self.assertRaises(AnsibleFailJson):
-			dkron_iface.cluster_status()
-			mock_fetch_url.assert_called_once_with(
-				module,
-				'http://172.16.0.1:80/v1/',
-				dkron_iface.headers,
-				method='GET'
-			)
+		result = dkron_iface.cluster_status()
+
+		mock_fetch_url.assert_called_once_with(
+			module,
+			'http://172.16.0.1:8080/v1/',
+			headers=dkron_iface.headers,
+			method='GET'
+		)
+		self.assertEquals(result, {"cluster_info": {"status": {
+			"coordinate_resets": 0,
+			"encrypted": False,
+			"event_queue": 0,
+			"event_time": 1,
+			"failed": 0,
+			"health_score": 0,
+			"intent_queue": 0,
+			"left": 0,
+			"member_time": 2,
+			"members": 2,
+			"query_queue": 0,
+			"query_time": 1
+    	}}})

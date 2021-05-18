@@ -184,6 +184,7 @@ options:
     description:
       - Overwrite the job configuration if it already exists.
       - Will still report the job status as changed even if existing config matches new config.
+      - If set to false, existing job config will be returned.
     type: bool
     default: true
   toggle:
@@ -303,7 +304,7 @@ def main():
     result = dict(
         changed=False,
         failed=False,
-        ansible_module_results={}
+        job_config={}
     )
     
     api = DkronClusterInterface(module)
@@ -312,20 +313,20 @@ def main():
         if not module.params['toggle']:
             if module.params['overwrite']:
                 data, changed = api.upsert_job()
-                result['ansible_module_results'] = data
+                result['job_config'] = data
                 result['changed'] = changed
             else:
                 existing_jobs = api.job_list()
                 if module.params['name'] not in existing_jobs:
                     data, changed = api.upsert_job()
-                    result['ansible_module_results'] = data
+                    result['job_config'] = data
                     result['changed'] = changed
                 else:
-                    result['ansible_module_results'] = {}
+                    result['job_config'] = api.get_job_config(module.params['name'])
                     result['changed'] = False
         else:
             data, changed = api.toggle_job(job_name=module.params['name'])
-            result['ansible_module_results'] = {'disabled': data}
+            result['job_config'] = {'disabled': data}
             result['changed'] = changed
 
     else:

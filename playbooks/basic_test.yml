@@ -13,6 +13,7 @@
     - name: test cluster_info module
       dkron_cluster_info:
         endpoint: "{{ query_host }}"
+        type: status
       register: task_output
 
     # - name: test job_info module
@@ -24,8 +25,10 @@
     # - name: test job module
     #   dkron_job:
     #     endpoint: "{{ query_host }}"
-    #     name: mytestjob3
-    #     toggle: yes
+    #     name: mydumbtestjob1
+    #     owner: 'Guy Knights'
+    #     shell_executor:
+    #       command: "echo 'my test command output'"
     #     state: present
     #   register: task_output
 

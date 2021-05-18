@@ -11,18 +11,18 @@ class MockedReponse(object):
 
 def cluster_query_status_response_success():
     server_response = json.dumps({"cluster_info": {"status": {
-		"coordinate_resets": "0",
-		"encrypted": "false",
-		"event_queue": "0",
-		"event_time": "1",
-		"failed": "0",
-		"health_score": "0",
-		"intent_queue": "0",
-		"left": "0",
-		"member_time": "2",
-		"members": "2",
-		"query_queue": "0",
-		"query_time": "1"
+        "coordinate_resets": 0,
+        "encrypted": False,
+        "event_queue": 0,
+        "event_time": 1,
+        "failed": 0,
+        "health_score": 0,
+        "intent_queue": 0,
+        "left": 0,
+        "member_time": 2,
+        "members": 2,
+        "query_queue": 0,
+        "query_time": 1
     }}})
     return (MockedReponse(server_response), {"status": 200})
 
