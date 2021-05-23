@@ -40,22 +40,86 @@ def cluster_query_status_response_success():
             'version':'3.1.3'
         }
     })
-    return (MockedReponse(server_response), {"status": 200})
+    return (MockedReponse(server_response), {'status': 200})
 
 
 def cluster_query_leader_response_success():
 
-    server_response = json.dumps({"leader": "172.16.0.1"})
-    return (MockedReponse(server_response), {"status": 200})
+    server_response = json.dumps({
+        'Name': 'ip-172-16-0-1',
+        'Addr': '172.16.0.1',
+        'Port': 8946,
+        'Tags': {
+            'dc': 'dc1',
+            'expect': '2',
+            'port': '6868',
+            'region': 'global',
+            'role': 'dkron',
+            'rpc_addr': '172.16.0.1:6868',
+            'server': 'true',
+            'version': '3.1.3'
+        },
+        'Status': 1,
+        'ProtocolMin': 1,
+        'ProtocolMax': 5,
+        'ProtocolCur': 2,
+        'DelegateMin': 2,
+        'DelegateMax': 5,
+        'DelegateCur': 4
+    })
+    return (MockedReponse(server_response), {'status': 200})
 
 
 def cluster_query_members_response_success():
 
-    server_response = json.dumps({"members": [
-    	"172.16.0.1",
-    	"172.16.0.2",
-    	"172.16.0.3"
-    ]})
+    server_response = json.dumps([
+        {
+            'Name':'ip-172-16-0-1',
+            'Addr':'172.16.0.1',
+            'Port':8946,
+            'Tags': {
+                'dc':'dc1',
+                'expect':'2',
+                'port':'6868',
+                'region':'global',
+                'role':'dkron',
+                'rpc_addr':'172.16.0.1:6868',
+                'server':'true',
+                'version':'3.1.3'
+            },
+            'Status':1,
+            'ProtocolMin':1,
+            'ProtocolMax':5,
+            'ProtocolCur':2,
+            'DelegateMin':2,
+            'DelegateMax':5,
+            'DelegateCur':4,
+            'id':'60d3965c-70df-19ab-f98b-3639241a092e'
+        },
+        {
+            'Name':'ip-172-16-0-2',
+            'Addr':'172.16.0.2',
+            'Port':8946,
+            'Tags': {
+                'dc':'dc1',
+                'expect':'2',
+                'port':'6868',
+                'region':'global',
+                'role':'dkron',
+                'rpc_addr':'172.16.0.2:6868',
+                'server':'true',
+                'version':'3.1.3'
+            },
+            'Status':1,
+            'ProtocolMin':1,
+            'ProtocolMax':5,
+            'ProtocolCur':2,
+            'DelegateMin':2,
+            'DelegateMax':5,
+            'DelegateCur':4,
+            'id':'c40191ac-fe26-b7f4-c85d-e2858d0c834d'
+        }
+    ])
     return (MockedReponse(server_response), {"status": 200})
 
 

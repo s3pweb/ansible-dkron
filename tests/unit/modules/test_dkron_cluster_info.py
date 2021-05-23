@@ -10,7 +10,9 @@ from ansible.module_utils._text import to_bytes
 from ansible_collections.knightsg.dkron.plugins.modules import dkron_cluster_info
 from ansible_collections.knightsg.dkron.plugins.module_utils.classes import DkronClusterInterface 
 from ansible_collections.knightsg.dkron.tests.unit.module_utils.dkron_cluster_responses import (
-	cluster_query_status_response_success
+	cluster_query_status_response_success,
+	cluster_query_leader_response_success,
+	cluster_query_members_response_success
 )
 import json
 
@@ -87,3 +89,46 @@ class DkronClusterInfoTest(TestCase):
 	            'query_queue': '0',
 	            'query_time': '1'
 		})
+
+	# Test retrieving cluster leader successfully
+	@patch('ansible_collections.knightsg.dkron.plugins.module_utils.classes.fetch_url')
+	def test_query_cluster_info_cluster_leader_success(self, mock_fetch_url):
+		set_module_args({
+			'endpoint': '172.16.0.1',
+			'type': 'leader'
+		})
+		module = dkron_cluster_info.init_module()
+		mock_fetch_url.return_value = cluster_query_leader_response_success()
+
+		dkron_iface = DkronClusterInterface(module)
+		result = dkron_iface.leader_node()
+		mock_fetch_url.assert_called_once_with(
+			module,
+			'http://172.16.0.1:8080/v1/leader',
+			headers=dkron_iface.headers,
+			method='GET'
+		)
+		self.assertEquals(result, '172.16.0.1')
+
+	# Test retrieving cluster member list successfully
+	@patch('ansible_collections.knightsg.dkron.plugins.module_utils.classes.fetch_url')
+	def test_query_cluster_info_cluster_members_success(self, mock_fetch_url):
+		set_module_args({
+			'endpoint': '172.16.0.1',
+			'type': 'members'
+		})
+		module = dkron_cluster_info.init_module()
+		mock_fetch_url.return_value = cluster_query_members_response_success()
+
+		dkron_iface = DkronClusterInterface(module)
+		result = dkron_iface.member_nodes()
+		mock_fetch_url.assert_called_once_with(
+			module,
+			'http://172.16.0.1:8080/v1/members',
+			headers=dkron_iface.headers,
+			method='GET'
+		)
+		self.assertEquals(result, [
+			'172.16.0.1',
+			'172.16.0.2'
+		])

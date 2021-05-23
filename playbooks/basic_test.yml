@@ -13,7 +13,7 @@
     - name: test cluster_info module
       dkron_cluster_info:
         endpoint: "{{ query_host }}"
-        type: status
+        type: leader
       register: task_output
 
     # - name: test job_info module
