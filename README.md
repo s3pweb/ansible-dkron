@@ -2,6 +2,8 @@
 
 This collection packages Ansible modules and roles for automating installation, configuration, querying and administration of a Dkron cluster.
 
+**Note: This collection is currently under development.**
+
 ## Included content
 - Connection Plugins:
 - Filter Plugins:

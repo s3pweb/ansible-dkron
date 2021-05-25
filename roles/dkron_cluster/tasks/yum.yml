@@ -1,7 +1,7 @@
 ---
 # tasks file for dkron_cluster
 - name: configure dkron yum repository
-  yum_repository:
+  ansible.builtin.yum_repository:
     name: dkron
     description: Dkron Pro Private Repo
     baseurl: https://repo.distrib.works/yum/

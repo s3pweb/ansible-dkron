@@ -7,7 +7,7 @@
     - knightsg.dkron
   vars:
     query_host: "{{ groups['dkron']|map('extract', hostvars, ['ansible_host'])|first }}"
-    
+
   tasks:
 
     - name: test cluster_info module

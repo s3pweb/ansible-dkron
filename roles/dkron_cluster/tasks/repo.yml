@@ -7,6 +7,6 @@
 - include_tasks: yum.yml
   when: ansible_distribution in ['CentOS', 'RedHat']
 
-- debug:
+- ansible.builtin.debug:
     msg: "Setup tasks not available for distribution {{ ansible_distribution }}..."
   when: ansible_distribution not in ['Debian', 'Ubuntu', 'CentOS', 'RedHat']

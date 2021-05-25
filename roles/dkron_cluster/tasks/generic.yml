@@ -1,14 +1,7 @@
 ---
 # tasks file for dkron_cluster
-- name: configure dkron apt repository
-  ansible.builtin.apt_repository:
-    repo: deb [trusted=yes] https://repo.distrib.works/apt/ /
-    filename: dkron
-    update_cache: yes
-    state: present
-
 - name: install dkron (autoupgrade)
-  ansible.builtin.apt:
+  ansible.builtin.package:
     name: dkron
     state: latest
   when: 
@@ -18,7 +11,7 @@
     - restart dkron
 
 - name: install dkron (current version)
-  ansible.builtin.apt:
+  ansible.builtin.package:
     name: dkron
     state: present
   when: 
@@ -26,13 +19,19 @@
     - version is not defined
 
 - name: install dkron (specific version)
-  ansible.builtin.apt:
+  ansible.builtin.package:
     name: "dkron={{ version }}"
     state: present
-    force: yes # allow downgrades
-  when:
+  when: 
     - autoupgrade is not defined or autoupgrade == False
     - version is defined
     - version is regex("[\d]+\.[\d]+\.[\d]+")
   notify:
     - restart dkron
+
+- ansible.builtin.fail:
+    msg: "Unable to install dkron package, supplied version is invalid."
+  when:
+    - autoupgrade is not defined or autoupgrade == False
+    - version is defined
+    - version is not regex("[\d]+\.[\d]+\.[\d]+")

@@ -2,7 +2,7 @@
 # tasks file for dkron_cluster
 
 - name: start dkron service
-  service:
+  ansible.builtin.service:
     name: dkron
     state: started
     enabled: yes

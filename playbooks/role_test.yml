@@ -1,0 +1,14 @@
+---
+# A playbook for debugging and testing
+
+- hosts: localhost
+  gather_facts: True
+  collections:
+    - knightsg.dkron
+  vars:
+    query_host: "{{ groups['dkron']|map('extract', hostvars, ['ansible_host'])|first }}"
+    
+  roles:
+    - role: dkron_cluster
+      vars:
+        autoupgrade: true
