@@ -1,6 +1,13 @@
 ---
 # tasks file for dkron_cluster
-- import_tasks: repo.yml
-- import_tasks: install.yml
-- import_tasks: config.yml
-- import_tasks: service.yml
+- block:
+    - import_tasks: repo.yml
+    - import_tasks: install.yml
+    - import_tasks: config.yml
+    - import_tasks: service.yml
+  when: version is not defined or (version is defined and version[0]|int >= 3)
+
+- debug:
+    msg: "Please specify a Dkron version 3.x or greater"
+  when: version is not defined or (version is defined and version[0]|int < 3)
+  run_once: yes

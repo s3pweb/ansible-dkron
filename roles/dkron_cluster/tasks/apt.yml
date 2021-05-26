@@ -12,7 +12,6 @@
     name: dkron
     state: latest
   when: 
-    - autoupgrade is defined
     - autoupgrade == True
   notify:
     - restart dkron
@@ -22,7 +21,7 @@
     name: dkron
     state: present
   when: 
-    - autoupgrade is not defined or autoupgrade == False
+    - autoupgrade == False
     - version is not defined
 
 - name: install dkron (specific version)
@@ -31,7 +30,7 @@
     state: present
     force: yes # allow downgrades
   when:
-    - autoupgrade is not defined or autoupgrade == False
+    - autoupgrade == False
     - version is defined
     - version is regex("[\d]+\.[\d]+\.[\d]+")
   notify:

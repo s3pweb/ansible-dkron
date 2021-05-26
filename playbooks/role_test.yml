@@ -1,7 +1,7 @@
 ---
 # A playbook for debugging and testing
 
-- hosts: localhost
+- hosts: all
   gather_facts: True
   collections:
     - knightsg.dkron
@@ -11,4 +11,4 @@
   roles:
     - role: dkron_cluster
       vars:
-        autoupgrade: true
+        autoupgrade: True
