@@ -147,7 +147,7 @@ class DkronClusterInterface(object):
             response = self.get(uri)
 
             if not response:
-                return False
+                return {}
 
             return response
 
