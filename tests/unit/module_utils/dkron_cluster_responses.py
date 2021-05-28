@@ -167,7 +167,7 @@ def cluster_query_job_config_response_success():
     return (MockedReponse(server_response), {"status": 200})
 
 
-def cluster_query_job_history_response_success():
+def cluster_query_full_job_history_response_success():
 
     server_response = json.dumps([
         {
@@ -178,7 +178,34 @@ def cluster_query_job_history_response_success():
             'success': 'true',
             'node_name': 'ip-172-16-2-146',
             'group': 1622079204001268640,
+            'attempt':2
+        },
+        {
+            'id': '1622079204013581868-ip-172-16-2-147',
+            'job_name': 'job',
+            'started_at': '2021-05-27T01:33:24.013581869Z',
+            'finished_at': '2021-05-27T01:33:24.018975353Z',
+            'success': 'false',
+            'node_name': 'ip-172-16-2-147',
+            'group': 1622079204001268640,
             'attempt':1
+        }
+    ])
+    return (MockedReponse(server_response), {"status": 200})
+
+
+def cluster_query_limited_job_history_response_success():
+
+    server_response = json.dumps([
+        {
+            'id': '1622079204013581868-ip-172-16-2-146',
+            'job_name': 'job',
+            'started_at': '2021-05-27T01:33:24.013581868Z',
+            'finished_at': '2021-05-27T01:33:24.018975352Z',
+            'success': 'true',
+            'node_name': 'ip-172-16-2-146',
+            'group': 1622079204001268640,
+            'attempt':2
         }
     ])
     return (MockedReponse(server_response), {"status": 200})

@@ -77,7 +77,7 @@ class DkronClusterInterface(object):
             if response:
                 leader = response['Addr']
             else:
-                leader = None
+                leader = ''
 
             return leader
 

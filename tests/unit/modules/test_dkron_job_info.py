@@ -11,7 +11,8 @@ from ansible_collections.knightsg.dkron.plugins.modules import dkron_job_info
 from ansible_collections.knightsg.dkron.plugins.module_utils.classes import DkronClusterInterface 
 from ansible_collections.knightsg.dkron.tests.unit.module_utils.dkron_cluster_responses import (
 	cluster_query_job_config_response_success,
-	cluster_query_job_history_response_success,
+	cluster_query_full_job_history_response_success,
+	cluster_query_limited_job_history_response_success,
 	cluster_query_response_http_not_found,
 	cluster_query_empty_dict_response,
 	cluster_query_empty_list_response
@@ -77,7 +78,7 @@ class DkronJobInfoTest(TestCase):
 			headers=dkron_iface.headers,
 			method='GET'
 		)
-		self.assertEquals(result, {
+		self.assertEqual(result, {
 	        'id': 'job',
 	        'name': 'job',
 	        'displayname': '',
@@ -115,7 +116,7 @@ class DkronJobInfoTest(TestCase):
 			'endpoint': '172.16.0.1'
 		})
 		module = dkron_job_info.init_module()
-		mock_fetch_url.return_value = cluster_query_job_history_response_success()
+		mock_fetch_url.return_value = cluster_query_full_job_history_response_success()
 
 		dkron_iface = DkronClusterInterface(module)
 		result = dkron_iface.get_job_history(job_name='job')
@@ -125,7 +126,7 @@ class DkronJobInfoTest(TestCase):
 			headers=dkron_iface.headers,
 			method='GET'
 		)
-		self.assertEquals(result, [
+		self.assertCountEqual(result, [
 	        {
 	            'id': '1622079204013581868-ip-172-16-2-146',
 	            'job_name': 'job',
@@ -134,9 +135,52 @@ class DkronJobInfoTest(TestCase):
 	            'success': 'true',
 	            'node_name': 'ip-172-16-2-146',
 	            'group': 1622079204001268640,
+	            'attempt':2
+	        },
+	        {
+	            'id': '1622079204013581868-ip-172-16-2-147',
+	            'job_name': 'job',
+	            'started_at': '2021-05-27T01:33:24.013581869Z',
+	            'finished_at': '2021-05-27T01:33:24.018975353Z',
+	            'success': 'false',
+	            'node_name': 'ip-172-16-2-147',
+	            'group': 1622079204001268640,
 	            'attempt':1
 	        }
 	    ])
+
+
+	# Test retrieving limited job history successfully
+	@patch('ansible_collections.knightsg.dkron.plugins.module_utils.classes.fetch_url')
+	def test_query_cluster_info_limit_job_history_success(self, mock_fetch_url):
+		set_module_args({
+			'endpoint': '172.16.0.1',
+			'limit_history': 1
+		})
+		module = dkron_job_info.init_module()
+		mock_fetch_url.return_value = cluster_query_limited_job_history_response_success()
+
+		dkron_iface = DkronClusterInterface(module)
+		result = dkron_iface.get_job_history(job_name='job')
+		mock_fetch_url.assert_called_once_with(
+			module,
+			'http://172.16.0.1:8080/v1/jobs/job/executions',
+			headers=dkron_iface.headers,
+			method='GET'
+		)
+		self.assertCountEqual(result, [
+	        {
+	            'id': '1622079204013581868-ip-172-16-2-146',
+	            'job_name': 'job',
+	            'started_at': '2021-05-27T01:33:24.013581868Z',
+	            'finished_at': '2021-05-27T01:33:24.018975352Z',
+	            'success': 'true',
+	            'node_name': 'ip-172-16-2-146',
+	            'group': 1622079204001268640,
+	            'attempt':2
+	        }
+	    ])
+
 
 	# Test job config query 404 response
 	@patch('ansible_collections.knightsg.dkron.plugins.module_utils.classes.fetch_url')
@@ -173,7 +217,6 @@ class DkronJobInfoTest(TestCase):
 
 		with self.assertRaises(AnsibleFailJson):
 			result = dkron_iface.get_job_history(job_name='job')
-
 			mock_fetch_url.assert_called_once_with(
 				module,
 				'http://172.16.0.1:8080/v1/jobs/job/executions',
@@ -199,4 +242,4 @@ class DkronJobInfoTest(TestCase):
 			headers=dkron_iface.headers,
 			method='GET'
 		)
-		self.assertEquals(result, {})
+		self.assertEqual(result, {})
