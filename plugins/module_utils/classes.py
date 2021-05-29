@@ -103,39 +103,36 @@ class DkronClusterInterface(object):
             return []
 
     def job_list(self):
-        uri = "/jobs"
+        if not self.module.params['active_only']:
+            uri = "/jobs"
 
-        try:
-            response = self.get(uri)
-
-            if 'active_only' in self.module.params and self.module.params['active_only']:
-                active_jobs = self.active_jobs()
-                job_list = [job['name'] for job in response if job['name'] in active_jobs]
-            else:
+            try:
+                response = self.get(uri)
                 job_list = [job['name'] for job in response]
 
-            return job_list
+                return job_list
 
-        except DkronRequestException as e:
-            self.module.fail_json(msg="cluster job list query failed ({err})".format(err=str(e)))
+            except DkronRequestException as e:
+                self.module.fail_json(msg="cluster job list query failed ({err})".format(err=str(e)))
 
-        except DkronEmptyResponseException as e:
-            return []
+            except DkronEmptyResponseException as e:
+                return []
 
-    def active_jobs(self):
-        uri = "/busy"
+        else:
+            uri = "/busy"
 
-        try:
-            response = self.get(uri)
-            job_list = [job['job_name'] for job in response]
+            try:
+                response = self.get(uri)
+                job_list = [job['job_name'] for job in response]
 
-            return job_list
+                return job_list
 
-        except DkronRequestException as e:
-            self.module.fail_json(msg="cluster status query failed ({err})".format(err=str(e)))
+            except DkronRequestException as e:
+                self.module.fail_json(msg="cluster status query failed ({err})".format(err=str(e)))
 
-        except DkronEmptyResponseException as e:
-            return []
+            except DkronEmptyResponseException as e:
+                return []
+
 
     def get_job_config(self, job_name=None):
         if job_name:

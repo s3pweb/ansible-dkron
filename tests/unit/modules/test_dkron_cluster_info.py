@@ -13,6 +13,8 @@ from ansible_collections.knightsg.dkron.tests.unit.module_utils.dkron_cluster_re
 	cluster_query_status_response_success,
 	cluster_query_leader_response_success,
 	cluster_query_members_response_success,
+	cluster_query_job_list_response_success,
+	cluster_query_active_job_list_response_success,
 	cluster_query_response_http_not_found,
 	cluster_query_empty_dict_response,
 	cluster_query_empty_list_response
@@ -261,6 +263,99 @@ class DkronClusterInfoTest(TestCase):
 		mock_fetch_url.assert_called_once_with(
 			module,
 			'http://172.16.0.1:8080/v1/members',
+			headers=dkron_iface.headers,
+			method='GET'
+		)
+		self.assertEqual(result, [])
+
+
+	# Test cluster job list query successful
+	@patch('ansible_collections.knightsg.dkron.plugins.module_utils.classes.fetch_url')
+	def test_query_cluster_info_cluster_job_list_success(self, mock_fetch_url):
+		set_module_args({
+			'endpoint': '172.16.0.1',
+			'type': 'jobs'
+		})
+		module = dkron_cluster_info.init_module()
+		mock_fetch_url.return_value = cluster_query_job_list_response_success()
+
+		dkron_iface = DkronClusterInterface(module)
+		result = dkron_iface.job_list()
+		mock_fetch_url.assert_called_once_with(
+			module,
+			'http://172.16.0.1:8080/v1/jobs',
+			headers=dkron_iface.headers,
+			method='GET'
+		)
+		self.assertEqual(result, [
+	    	'job',
+	    	'job2',
+	    	'job3'
+	    ])
+
+
+	# Test cluster active job list query successful
+	@patch('ansible_collections.knightsg.dkron.plugins.module_utils.classes.fetch_url')
+	def test_query_cluster_info_cluster_active_job_list_success(self, mock_fetch_url):
+		set_module_args({
+			'endpoint': '172.16.0.1',
+			'type': 'jobs',
+			'active_only': 'true'
+		})
+		module = dkron_cluster_info.init_module()
+		mock_fetch_url.return_value = cluster_query_active_job_list_response_success()
+
+		dkron_iface = DkronClusterInterface(module)
+		result = dkron_iface.job_list()
+		mock_fetch_url.assert_called_once_with(
+			module,
+			'http://172.16.0.1:8080/v1/busy',
+			headers=dkron_iface.headers,
+			method='GET'
+		)
+		self.assertEqual(result, [
+	    	'job2',
+	    	'job3'
+	    ])
+
+
+	# Test cluster job list query 404 response
+	@patch('ansible_collections.knightsg.dkron.plugins.module_utils.classes.fetch_url')
+	def test_query_cluster_info_cluster_job_list_404_response(self, mock_fetch_url):
+		set_module_args({
+			'endpoint': '172.16.0.1',
+			'type': 'members'
+		})
+		module = dkron_cluster_info.init_module()
+		mock_fetch_url.return_value = cluster_query_response_http_not_found()
+
+		dkron_iface = DkronClusterInterface(module)
+
+		with self.assertRaises(AnsibleFailJson):
+			result = dkron_iface.job_list()
+			mock_fetch_url.assert_called_once_with(
+				module,
+				'http://172.16.0.1:8080/v1/jobs',
+				headers=dkron_iface.headers,
+				method='GET'
+			)
+
+
+	# Test cluster job list query empty response
+	@patch('ansible_collections.knightsg.dkron.plugins.module_utils.classes.fetch_url')
+	def test_query_cluster_info_cluster_job_list_empty_response(self, mock_fetch_url):
+		set_module_args({
+			'endpoint': '172.16.0.1',
+			'type': 'jobs'
+		})
+		module = dkron_cluster_info.init_module()
+		mock_fetch_url.return_value = cluster_query_empty_list_response()
+
+		dkron_iface = DkronClusterInterface(module)
+		result = dkron_iface.job_list()
+		mock_fetch_url.assert_called_once_with(
+			module,
+			'http://172.16.0.1:8080/v1/jobs',
 			headers=dkron_iface.headers,
 			method='GET'
 		)

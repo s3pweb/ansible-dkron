@@ -125,11 +125,119 @@ def cluster_query_members_response_success():
 
 def cluster_query_job_list_response_success():
 
-    server_response = json.dumps({"jobs": [
-    	"testjob1",
-    	"testjob2",
-    	"testjob3"
-    ]})
+    server_response = json.dumps([
+        {
+            'id': 'job',
+            'name': 'job',
+            'displayname': '',
+            'timezone': '',
+            'schedule': '@every 1m',
+            'owner': 'guy',
+            'owner_email': 'guy@bluebatgames.com',
+            'success_count': 145395,
+            'error_count': 0,
+            'last_success': '2021-05-27T05: 29: 24.030944666Z',
+            'last_error': 'null',
+            'disabled': 'false',
+            'tags': {
+            'server': 'true: 1'},
+            'metadata': 'null',
+            'retries': 0,
+            'dependent_jobs': 'null',
+            'parent_job': '',
+            'processors': {
+            },
+            'concurrency': 'allow',
+            'executor': 'shell',
+            'executor_config': {
+            'command': '/bin/true'},
+            'status': 'success',
+            'next': '2021-05-27T05: 30: 24Z'
+        },
+        {
+            'id': 'job2',
+            'name': 'job2',
+            'displayname': '',
+            'timezone': '',
+            'schedule': '@every 10m',
+            'owner': 'guy',
+            'owner_email': 'guy@bluebatgames.com',
+            'success_count': 14498,
+            'error_count': 0,
+            'last_success': '2021-05-27T05: 25: 24.023101544Z',
+            'last_error': 'null',
+            'disabled': 'false',
+            'tags': {
+            'server': 'true: 1'},
+            'metadata': 'null',
+            'retries': 0,
+            'dependent_jobs': 'null',
+            'parent_job': '',
+            'processors': {
+            },
+            'concurrency': 'allow',
+            'executor': 'shell',
+            'executor_config': {
+            'command': '/bin/true'},
+            'status': 'success',
+            'next': '2021-05-27T05: 35: 24Z'
+        },
+        {
+            'id': 'job3',
+            'name': 'job3',
+            'displayname': '',
+            'timezone': '',
+            'schedule': '@every 60m',
+            'owner': 'guy',
+            'owner_email': 'guy@bluebatgames.com',
+            'success_count': 2398,
+            'error_count': 0,
+            'last_success': '2021-05-27T05: 25: 24.019757259Z',
+            'last_error': 'null',
+            'disabled': 'false',
+            'tags': {
+            'server': 'true: 1'},
+            'metadata': 'null',
+            'retries': 0,
+            'dependent_jobs': 'null',
+            'parent_job': '',
+            'processors': {
+            },
+            'concurrency': 'allow',
+            'executor': 'shell',
+            'executor_config': {
+            'command': '/bin/true'},
+            'status': 'success',
+            'next': '2021-05-27T06: 25: 24Z'
+        }
+    ])
+    return (MockedReponse(server_response), {"status": 200})
+
+
+def cluster_query_active_job_list_response_success():
+
+    server_response = json.dumps([
+        {
+            'id': '1622311576616995876-ip-172-16-2-146',
+            'job_name': 'job2',
+            'started_at': '2021-05-29T18: 06: 16.616995876Z',
+            'finished_at': '0001-01-01T00: 00: 00Z',
+            'success': 'false',
+            'node_name': 'ip-172-16-2-146',
+            'group': 1622311576597516603,
+            'attempt': 1
+        },
+        {
+            'id': '1622311576616995876-ip-172-16-2-146',
+            'job_name': 'job3',
+            'started_at': '2021-05-29T18: 06: 16.616995876Z',
+            'finished_at': '0001-01-01T00: 00: 00Z',
+            'success': 'false',
+            'node_name': 'ip-172-16-2-146',
+            'group': 1622311576597516603,
+            'attempt': 1
+        }
+    ])
     return (MockedReponse(server_response), {"status": 200})
 
 
