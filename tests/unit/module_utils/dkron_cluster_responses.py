@@ -319,6 +319,43 @@ def cluster_query_limited_job_history_response_success():
     return (MockedReponse(server_response), {"status": 200})
 
 
+def cluster_query_create_job_with_overwrite_response_success():
+
+    server_response = json.dumps(
+        {
+            'id': 'job',
+            'name': 'job',
+            'displayname': '',
+            'timezone': '',
+            'schedule': '0 */15 * * * *',
+            'owner': '',
+            'owner_email': '',
+            'success_count': 145693,
+            'error_count': 0,
+            'last_success': '2021-05-29T22: 16: 07.018850696Z',
+            'last_error': 'null',
+            'disabled': 'false',
+            'tags': {
+                'server': 'true: 1'
+            },
+            'metadata': 'null',
+            'retries': 0,
+            'dependent_jobs': 'null',
+            'parent_job': '',
+            'processors': {},
+            'concurrency': 'allow',
+            'executor': 'shell',
+            'executor_config': {
+                'command': '/bin/echo "hello world"',
+                'cwd': '/tmp'
+            },
+            'status': 'success',
+            'next': '2021-05-29T22: 17: 07Z'
+        }
+    )
+    return (MockedReponse(server_response), {"status": 201})
+
+
 def cluster_query_empty_dict_response():
 
     server_response = json.dumps({})

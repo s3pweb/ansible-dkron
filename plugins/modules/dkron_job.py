@@ -37,10 +37,12 @@ options:
     description:
       - Name of job owner.
     type: string
+    default: ''
   owner_email:
     description:
       - Email of job owner.
     type: string
+    default: ''
   disabled:
     description:
       - Whether to disable the job when it's created.
@@ -50,18 +52,22 @@ options:
     description:
       - Tags to apply to the job (https://dkron.io/usage/target-nodes-spec/).
     type: dict
+    default: {}
   metadata:
     description
       - Metadata to apply to job (https://dkron.io/usage/metatags/).
     type: dict
+    default: {}
   retries:
     description:
       - Number of times the job should retry execution on failure.
-    type:int
+    type: int
+    default: 0
   parent_job:
     description:
       - Name of parent job that this job depends on.
     type: string
+    default: ''
   run_on_create:
     description:
       - Run the job immediately after creation.
@@ -190,7 +196,7 @@ options:
   toggle:
     description:
       - If set to true and job with the same name exists, this will enable/disable the job.
-      - If toggle is set the only other required parameter is job_name. All other parameters with values will be ignored.
+      - If toggle is set the only other required parameter is name. All other parameters with values will be ignored.
     type: bool
     default: false
   state:

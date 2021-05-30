@@ -344,7 +344,7 @@ class DkronClusterInterface(object):
         if info['status'] != success_response:
             raise DkronRequestException(info['status'])
 
-        json_response = json.loads(response.read().decode('utf8'))
+        json_response = json.loads(response.read())
 
         if json_response == "":
             raise DkronEmptyResponseException
@@ -362,7 +362,7 @@ class DkronClusterInterface(object):
             raise DkronRequestException(info['status'])
 
         if response:
-            json_response = json.loads(response.read().decode('utf8'))
+            json_response = json.loads(response.read())
             return json_response
         else:
             return None
