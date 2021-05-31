@@ -6,3 +6,8 @@
     name: dkron
     state: started
     enabled: yes
+  when: ansible_distribution in ['Debian', 'Ubuntu']
+
+- ansible.builtin.debug:
+    msg: "Cannot auto start Dkron service in Centos/Redhat due to bug..."
+  when: ansible_distribution not in ['CentOS', 'RedHat']

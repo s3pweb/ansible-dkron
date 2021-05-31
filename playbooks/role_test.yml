@@ -10,5 +10,3 @@
     
   roles:
     - role: dkron_cluster
-      vars:
-        autoupgrade: True
