@@ -168,7 +168,7 @@ def main():
         failed=False,
         jobs={}
     )
-    
+
     jobs = []
     api = DkronClusterInterface(module)
 

@@ -312,7 +312,7 @@ def main():
         failed=False,
         job_config={}
     )
-    
+
     api = DkronClusterInterface(module)
 
     if module.params['state'] == 'present':

@@ -133,7 +133,6 @@ class DkronClusterInterface(object):
             except DkronEmptyResponseException as e:
                 return []
 
-
     def get_job_config(self, job_name=None):
         if job_name:
             uri = "/jobs/{name}".format(name=job_name)

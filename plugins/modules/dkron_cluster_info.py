@@ -125,7 +125,7 @@ def main():
         failed=False,
         cluster_info={}
     )
-    
+
     data = {}
     api = DkronClusterInterface(module)
 
