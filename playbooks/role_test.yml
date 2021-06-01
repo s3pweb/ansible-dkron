@@ -1,12 +1,10 @@
 ---
-# A playbook for debugging and testing
+# A basic playbook to install and configure a dkron cluster.
 
 - hosts: all
   gather_facts: True
   collections:
     - knightsg.dkron
-  vars:
-    query_host: "{{ groups['dkron']|map('extract', hostvars, ['ansible_host'])|first }}"
     
   roles:
     - role: dkron_cluster

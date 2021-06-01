@@ -1,6 +1,6 @@
 namespace: knightsg
 name: dkron
-version: 1.0.0
+version: 0.1.0
 readme: README.md
 authors:
   - Guy Knights <contact@guyknights.com>
@@ -14,3 +14,8 @@ repository: https://github.com/knightsg/dkron
 documentation: ''
 homepage: ''
 issues: 'https://github.com/knightsg/dkron/issues'
+build_ignore:
+  - 'env'
+  - 'env/*'
+  - 'hosts.yml'
+  - 'ansible.cfg'
