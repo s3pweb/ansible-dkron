@@ -7,13 +7,13 @@ botocore==1.20.33
 certifi==2021.5.30
 cffi==1.14.0
 chardet==4.0.0
-cryptography==2.9.2
+cryptography==3.4.7
 docutils==0.17.1
 idna==2.10
 imagesize==1.2.0
-Jinja2==2.11.2
+Jinja2==3.0.1
 jmespath==0.10.0
-MarkupSafe==1.1.1
+MarkupSafe==2.0.1
 packaging==20.9
 pkg-resources==0.0.0
 pycodestyle==2.7.0
@@ -39,4 +39,4 @@ sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.5
 straight.plugin==1.5.0
-urllib3==1.26.4
+urllib3==1.26.5
