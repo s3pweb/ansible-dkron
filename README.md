@@ -1,8 +1,8 @@
+
+
 # Ansible Collection - knightsg.dkron
 
 This collection packages Ansible modules and roles for automating installation, configuration, querying and administration of a Dkron cluster.
-
-**Note: This collection is currently under development.**
 
 ## Included content
 - Connection Plugins:
@@ -11,25 +11,32 @@ This collection packages Ansible modules and roles for automating installation, 
 - Callback Plugins:
 - Lookup Plugins:
 - Modules:
-  - dkron_cluster_info
-  - dkron_job_info
-  - dkron_job
+    - dkron_cluster_info
+    - dkron_job_info
+    - dkron_job
 
-## Supported Dkron versions
-This collection has only been tested with Dkron version 3.x.
+## Tested with Ansible
+- 2.9
+
+## Tested with Dkron
+- 3.x
 
 ## Installation and Usage
-### Installing from Ansible Galaxy
-This module is a work in progress and has not yet been submitted to Ansible Galaxy.
+**Installing from Ansible Galaxy**
+`ansible-galaxy collection install knightsg.dkron`
 
-### Installing manually from this repository (using Ansible Galaxy)
-The Ansible Galaxy command line utility can be used to install the collection directly from this repo using the following command:
+**Install via requirements.yml**
+Include collection in a `requirements.yml` and install via `ansible-galaxy collection install -r requirements.yml`. The requirements format is as follows:
+
+    --- 
+    collections:
+      - name: knightsg.dkron
+
+**Installing manually from source using ansible-galaxy**
+The Ansible Galaxy command line utility can be used to install the collection directly from the source repo using the following command:
 
 `ansible-galaxy collection install git+https://github.com/knightsg/ansible-dkron.git,stable`
  
-The above command can be adjusted to install from other branches, tags or commits as required according to your needs. Just replace 'stable' with your chosen branch or tag name. 
+The above command can be adjusted to install from other branches, tags or commits as required according to your needs. Just replace 'stable' with your chosen branch or tag name.
 
-The following list shows each major branch and its purpose:
-- stable: Latest tested code.
-- stable-x: Latest tested code for a specific version. 
-- devel: Latest untested code.
+See [Ansible Using collections](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html) for more details.
