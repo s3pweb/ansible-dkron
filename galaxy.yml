@@ -10,7 +10,7 @@ license:
 tags:
   - dkron
 dependencies: {}
-repository: https://github.com/knightsg/dkron
+repository: https://github.com/knightsg/ansible-dkron
 documentation: ''
 homepage: ''
 issues: 'https://github.com/knightsg/dkron/issues'
