@@ -2,7 +2,7 @@
 # tasks file for dkron_cluster
 - name: create a list of dkron hosts from current playbook hostset
   ansible.builtin.set_fact:
-    dkron_hosts: "{{ groups['all'] }}"
+    dkron_hosts: "{{ groups['dkron-nodes'] }}"
 
 - block:
     - import_tasks: repo.yml
