@@ -4,6 +4,8 @@
   ansible.builtin.copy:
     content: |
       server: true
+      bind-addr: "{{ inventory_hostname }}:{{ dkron_bind_port }}"
+      http-addr: "{{ dkron_http_addr }}"
       bootstrap-expect: {{ dkron_hosts | length }}
       join: 
         {{ dkron_hosts | sort | difference([hostvars[inventory_hostname]['ansible_default_ipv4']['address']]) | to_nice_yaml | trim | indent(2) }}

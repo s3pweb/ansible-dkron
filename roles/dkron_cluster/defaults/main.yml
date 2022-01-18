@@ -1,3 +1,6 @@
 ---
 # defaults file for dkron_cluster
 autoupgrade: False
+
+dkron_bind_port: 8649
+dkron_http_addr: ":8080"
