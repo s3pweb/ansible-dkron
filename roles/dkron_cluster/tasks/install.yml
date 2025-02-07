@@ -1,10 +1,10 @@
 ---
 # tasks file for dkron_cluster
 - include_tasks: apt.yml
-  when: ansible_distribution in ['debian', 'ubuntu']
+  when: ansible_distribution in ['debian', 'ubuntu', 'Ubuntu']
 
 - include_tasks: yum.yml
   when: ansible_distribution in ['redhat', 'centos']
 
 - include_tasks: generic.yml
-  when: ansible_distribution not in ['debian', 'ubuntu']
+  when: ansible_distribution not in ['debian', 'ubuntu', 'Ubuntu']
