@@ -26,12 +26,13 @@
 
 - name: install dkron (specific version)
   ansible.builtin.apt:
-    name: "dkron={{ version }}"
+    name: "dkron={{ dkron_version }}"
     state: present
+    update_cache: yes
     force: yes # allow downgrades
   when:
     - autoupgrade == False
-    - version is defined
-    - version is regex("[\d]+\.[\d]+\.[\d]+")
+    - dkron_version is defined
+    - dkron_version is regex("[\d]+\.[\d]+\.[\d]+")
   notify:
     - restart dkron
