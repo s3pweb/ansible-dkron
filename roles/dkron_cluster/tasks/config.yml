@@ -9,6 +9,16 @@
       bootstrap-expect: {{ dkron_hosts | length }}
       retry-join: 
         {{ dkron_hosts | sort | difference([hostvars[inventory_hostname]['ansible_default_ipv4']['address']]) | to_nice_yaml | trim | indent(2) }}
+
+      {% if dkron_mail_username is defined and dkron_mail_password is defined %}
+      mail-host: "in-v3.mailjet.com"
+      mail-port: 25
+      mail-username: {{ dkron_mail_username }}
+      mail-password: {{ dkron_mail_password }}
+      mail-from: {{ dkron_mail_from | default('') }}
+      mail-subject-prefix: "{{ dkron_mail_subject_prefix | default('[]') }}"
+      mail-payload: "\{\{.Report\}\}"
+      {% endif %}
     dest: /etc/dkron/dkron.yml
   notify:
   - restart dkron
