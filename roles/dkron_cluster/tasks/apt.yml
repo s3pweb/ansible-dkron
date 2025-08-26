@@ -22,7 +22,7 @@
     state: present
   when: 
     - autoupgrade == False
-    - version is not defined
+    - dkron_version is not defined
 
 - name: install dkron (specific version)
   ansible.builtin.apt:
