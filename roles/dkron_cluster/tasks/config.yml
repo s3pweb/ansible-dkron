@@ -17,7 +17,7 @@
       mail-password: {{ dkron_mail_password }}
       mail-from: {{ dkron_mail_from | default('') }}
       mail-subject-prefix: "{{ dkron_mail_subject_prefix | default('[]') }}"
-      mail-payload: "\{\{.Report\}\}"
+      mail-payload: "{% raw %}{{.Report}}{% endraw %}"
       {% endif %}
     dest: /etc/dkron/dkron.yml
   notify:
