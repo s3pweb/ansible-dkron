@@ -5,6 +5,7 @@
     content: |
       server: true
       bind-addr: "{{ inventory_hostname }}:{{ dkron_bind_port }}"
+      advertise-addr: "{{ inventory_hostname }}:{{ dkron_bind_port }}"
       http-addr: "{{ dkron_http_addr }}"
       bootstrap-expect: {{ dkron_hosts | length }}
       retry-join: 
